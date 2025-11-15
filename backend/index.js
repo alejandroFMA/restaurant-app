@@ -14,9 +14,9 @@ const app = express();
 app.use(express.json());
 
 // routes
-app.use("/api", restaurantsAPIRoute);
-app.use("/api", usersAPIRoute);
-app.use("/api", authAPIRoute);
+app.use("/api/restaurants", restaurantsAPIRoute);
+app.use("/api/users", usersAPIRoute);
+app.use("/api/auth", authAPIRoute);
 
 const start = async () => {
   try {

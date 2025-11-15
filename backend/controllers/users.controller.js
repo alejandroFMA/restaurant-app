@@ -32,6 +32,9 @@ const getUserByEmail = async (email) => {
 
 const getUserByUsername = async (username) => {
   try {
+    if (!username) {
+      throw new Error("Username is required");
+    }
     const user = await User.findOne({ username });
     return user;
   } catch (error) {
@@ -39,9 +42,19 @@ const getUserByUsername = async (username) => {
   }
 };
 
+const userWhiteList = ["first_name", "last_name", "username"];
+
 const updateUser = async (userId, data) => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, data, {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    const filteredData = Object.fromEntries(
+      Object.entries(data).filter(([key]) => userWhiteList.includes(key))
+    );
+
+    const updatedUser = await User.findByIdAndUpdate(userId, filteredData, {
       new: true,
     });
     return updatedUser;
@@ -61,11 +74,19 @@ const deleteUser = async (userId) => {
 
 const getFavouriteRestaurants = async (userId) => {
   try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
     const user = await User.findById(userId).populate({
       path: "favourite_restaurants",
       select: "name -__v",
       model: "Restaurant",
     });
+
+    if (!user) {
+      return null;
+    }
+
     return user.favourite_restaurants;
   } catch (error) {
     throw new Error("Error fetching favourite restaurants: " + error.message);
