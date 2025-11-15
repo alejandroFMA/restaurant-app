@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import restaurantsAPIRoute from "./routes/restaurants.routes.js";
 import usersAPIRoute from "./routes/users.routes.js";
+import authAPIRoute from "./routes/auth.routes.js";
 import connectDB from "./config/database.js";
 
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(express.json());
 // routes
 app.use("/api", restaurantsAPIRoute);
 app.use("/api", usersAPIRoute);
+app.use("/api", authAPIRoute);
 
 const start = async () => {
   try {

@@ -1,18 +1,5 @@
 import User from "../models/User.model.js";
 
-const createUser = async (data) => {
-  try {
-    if (!data.username || !data.email || !data.password) {
-      throw new Error("Username, email, and password are required");
-    }
-    const newUser = new User(data);
-    await newUser.save();
-    return newUser;
-  } catch (error) {
-    throw new Error("Error creating user: " + error.message);
-  }
-};
-
 const getUserById = async (userId) => {
   try {
     if (!userId) {
@@ -86,7 +73,6 @@ const getFavouriteRestaurants = async (userId) => {
 };
 
 export {
-  createUser,
   getUserById,
   updateUser,
   deleteUser,

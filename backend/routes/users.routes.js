@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  createUser,
   getUserById,
   updateUser,
   deleteUser,
@@ -27,15 +26,6 @@ router.get("/users/username/:username", async (req, res) => {
     const user = await getUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post("/users", async (req, res) => {
-  try {
-    const newUser = await createUser(req.body);
-    res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
