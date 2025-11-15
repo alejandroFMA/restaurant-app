@@ -1,0 +1,30 @@
+{
+  "name": "restaurant-app",
+  "version": "1.0.0",
+  "description": "restaurant app",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alejandroFMA/restaurant-app.git"
+  },
+  "author": "Alejandro Marquez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alejandroFMA/restaurant-app/issues"
+  },
+  "homepage": "https://github.com/alejandroFMA/restaurant-app#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
