@@ -8,10 +8,11 @@ import {
   getUserByUsername,
   getFavouriteRestaurants,
 } from "../controllers/users.controller.js";
+import { authorizedUser, adminOnly } from "../middleware/authentication.js";
 
 const router = express.Router();
 
-router.get("/users/email/:email", async (req, res) => {
+router.get("/email/:email", authorizedUser, async (req, res) => {
   try {
     const user = await getUserByEmail(req.params.email);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -21,7 +22,7 @@ router.get("/users/email/:email", async (req, res) => {
   }
 });
 
-router.get("/users/username/:username", async (req, res) => {
+router.get("/username/:username", authorizedUser, async (req, res) => {
   try {
     const user = await getUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -31,7 +32,7 @@ router.get("/users/username/:username", async (req, res) => {
   }
 });
 
-router.get("/users/:id", async (req, res) => {
+router.get("/:id", authorizedUser, async (req, res) => {
   try {
     const user = await getUserById(req.params.id);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -41,7 +42,7 @@ router.get("/users/:id", async (req, res) => {
   }
 });
 
-router.get("/users", async (req, res) => {
+router.get("/", authorizedUser, adminOnly, async (req, res) => {
   try {
     const users = await getAllUsers();
     res.json(users);
@@ -50,7 +51,7 @@ router.get("/users", async (req, res) => {
   }
 });
 
-router.put("/users/:id", async (req, res) => {
+router.put("/:id", authorizedUser, async (req, res) => {
   try {
     const updatedUser = await updateUser(req.params.id, req.body);
     if (!updatedUser) return res.status(404).json({ error: "User not found" });
@@ -60,7 +61,7 @@ router.put("/users/:id", async (req, res) => {
   }
 });
 
-router.delete("/users/:id", async (req, res) => {
+router.delete("/:id", authorizedUser, adminOnly, async (req, res) => {
   try {
     const deletedUser = await deleteUser(req.params.id);
     if (!deletedUser) return res.status(404).json({ error: "User not found" });
@@ -70,7 +71,7 @@ router.delete("/users/:id", async (req, res) => {
   }
 });
 
-router.get("/users/:id/favourites", async (req, res) => {
+router.get("/:id/favourites", authorizedUser, async (req, res) => {
   try {
     const favourites = await getFavouriteRestaurants(req.params.id);
     res.json(favourites);
