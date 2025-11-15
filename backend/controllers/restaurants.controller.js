@@ -1,9 +1,5 @@
-const restaurants = require("../db/restaurants.json");
+import restaurants from "../config/restaurants.json" assert { type: "json" };
 
-const fetchAllRestaurants = (req, res) => {
+export const fetchAllRestaurants = (req, res) => {
   res.json(restaurants);
-};
-
-module.exports = {
-  fetchAllRestaurants,
 };

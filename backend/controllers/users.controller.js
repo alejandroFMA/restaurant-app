@@ -1,0 +1,97 @@
+import User from "../models/User.model.js";
+
+const createUser = async (data) => {
+  try {
+    if (!data.username || !data.email || !data.password) {
+      throw new Error("Username, email, and password are required");
+    }
+    const newUser = new User(data);
+    await newUser.save();
+    return newUser;
+  } catch (error) {
+    throw new Error("Error creating user: " + error.message);
+  }
+};
+
+const getUserById = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    throw new Error("Error fetching user: " + error.message);
+  }
+};
+
+const getAllUsers = async () => {
+  try {
+    const users = await User.find();
+    return users;
+  } catch (error) {
+    throw new Error("Error fetching users: " + error.message);
+  }
+};
+
+const getUserByEmail = async (email) => {
+  try {
+    const user = await User.findOne({ email });
+    return user;
+  } catch (error) {
+    throw new Error("Error fetching user by email: " + error.message);
+  }
+};
+
+const getUserByUsername = async (username) => {
+  try {
+    const user = await User.findOne({ username });
+    return user;
+  } catch (error) {
+    throw new Error("Error fetching user by username: " + error.message);
+  }
+};
+
+const updateUser = async (userId, data) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, data, {
+      new: true,
+    });
+    return updatedUser;
+  } catch (error) {
+    throw new Error("Error updating user: " + error.message);
+  }
+};
+
+const deleteUser = async (userId) => {
+  try {
+    await User.findByIdAndDelete(userId);
+    return true;
+  } catch (error) {
+    throw new Error("Error deleting user: " + error.message);
+  }
+};
+
+const getFavouriteRestaurants = async (userId) => {
+  try {
+    const user = await User.findById(userId).populate({
+      path: "favourite_restaurants",
+      select: "name -__v",
+      model: "Restaurant",
+    });
+    return user.favourite_restaurants;
+  } catch (error) {
+    throw new Error("Error fetching favourite restaurants: " + error.message);
+  }
+};
+
+export {
+  createUser,
+  getUserById,
+  updateUser,
+  deleteUser,
+  getAllUsers,
+  getUserByEmail,
+  getUserByUsername,
+  getFavouriteRestaurants,
+};
