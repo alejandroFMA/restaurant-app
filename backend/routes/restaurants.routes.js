@@ -4,7 +4,7 @@ import {
   fetchRestaurantById,
   fetchAllRestaurants,
   fetchRestaurantByName,
-  fechtTopRestaurants,
+  fetchTopRestaurants,
   updateRestaurant,
   deleteRestaurant,
 } from "../controllers/restaurants.controller.js";
@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get("/top", authorize(), async (req, res) => {
   try {
-    const restaurants = await fechtTopRestaurants();
+    const restaurants = await fetchTopRestaurants();
     res.json(restaurants);
   } catch (error) {
     res.status(500).json({ error: error.message });

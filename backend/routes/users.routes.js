@@ -1,12 +1,12 @@
 import express from "express";
 import {
-  getUserById,
-  updateUser,
-  deleteUser,
-  getAllUsers,
-  getUserByEmail,
-  getUserByUsername,
-  getFavouriteRestaurants,
+  fetchUserById,
+  updateUserById,
+  deleteUserById,
+  fetchAllUsers,
+  fetchUserByEmail,
+  fetchUserByUsername,
+  fetchFavouriteRestaurants,
 } from "../controllers/users.controller.js";
 import { authorize, ownerOrAdmin } from "../middleware/authentication.js";
 
@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get("/email/:email", authorize("admin"), async (req, res) => {
   try {
-    const user = await getUserByEmail(req.params.email);
+    const user = await fetchUserByEmail(req.params.email);
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);
   } catch (error) {
@@ -24,7 +24,7 @@ router.get("/email/:email", authorize("admin"), async (req, res) => {
 
 router.get("/username/:username", authorize(), async (req, res) => {
   try {
-    const user = await getUserByUsername(req.params.username);
+    const user = await fetchUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);
   } catch (error) {
@@ -34,7 +34,7 @@ router.get("/username/:username", authorize(), async (req, res) => {
 
 router.get("/:id", authorize(), async (req, res) => {
   try {
-    const user = await getUserById(req.params.id);
+    const user = await fetchUserById(req.params.id);
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);
   } catch (error) {
@@ -44,7 +44,7 @@ router.get("/:id", authorize(), async (req, res) => {
 
 router.get("/", authorize("admin"), async (req, res) => {
   try {
-    const users = await getAllUsers();
+    const users = await fetchAllUsers();
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -53,7 +53,7 @@ router.get("/", authorize("admin"), async (req, res) => {
 
 router.put("/:id", authorize(), ownerOrAdmin, async (req, res) => {
   try {
-    const updatedUser = await updateUser(req.params.id, req.body);
+    const updatedUser = await updateUserById(req.params.id, req.body);
     if (!updatedUser) return res.status(404).json({ error: "User not found" });
     res.json(updatedUser);
   } catch (error) {
@@ -63,7 +63,7 @@ router.put("/:id", authorize(), ownerOrAdmin, async (req, res) => {
 
 router.delete("/:id", authorize("admin"), ownerOrAdmin, async (req, res) => {
   try {
-    const deletedUser = await deleteUser(req.params.id);
+    const deletedUser = await deleteUserById(req.params.id);
     if (!deletedUser) return res.status(404).json({ error: "User not found" });
     res.json({ message: "User deleted successfully" });
   } catch (error) {
@@ -73,7 +73,7 @@ router.delete("/:id", authorize("admin"), ownerOrAdmin, async (req, res) => {
 
 router.get("/:id/favourites", authorize(), async (req, res) => {
   try {
-    const favourites = await getFavouriteRestaurants(req.params.id);
+    const favourites = await fetchFavouriteRestaurants(req.params.id);
     res.json(favourites);
   } catch (error) {
     res.status(500).json({ error: error.message });

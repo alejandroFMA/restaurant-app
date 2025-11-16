@@ -82,7 +82,7 @@ const fetchRestaurantByName = async (name) => {
   }
 };
 
-const fechtTopRestaurants = async () => {
+const fetchTopRestaurants = async () => {
   try {
     const restaurants = await Restaurant.find()
       .sort({ average_rating: -1 })
@@ -132,7 +132,7 @@ export {
   fetchRestaurantById,
   fetchAllRestaurants,
   fetchRestaurantByName,
-  fechtTopRestaurants,
+  fetchTopRestaurants,
   updateRestaurant,
   deleteRestaurant,
 };
