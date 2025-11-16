@@ -21,13 +21,13 @@ jest.unstable_mockModule("../../../models/User.model.js", () => ({
 }));
 
 const {
-  getUserById,
-  getAllUsers,
-  getUserByEmail,
-  getUserByUsername,
-  updateUser,
-  deleteUser,
-  getFavouriteRestaurants,
+  fetchUserById,
+  fetchAllUsers,
+  fetchUserByEmail,
+  fetchUserByUsername,
+  updateUserById,
+  deleteUserById,
+  fetchFavouriteRestaurants,
 } = await import("../../../controllers/users.controller.js");
 
 describe("Users Controller", () => {
@@ -46,7 +46,7 @@ describe("Users Controller", () => {
       };
       mockUserFindById.mockResolvedValue(mockUser);
 
-      const result = await getUserById("user123");
+      const result = await fetchUserById("user123");
 
       expect(mockUserFindById).toHaveBeenCalledWith("user123");
       expect(result).toEqual(mockUser);
@@ -55,7 +55,7 @@ describe("Users Controller", () => {
     it("should return null if user does not exist", async () => {
       mockUserFindById.mockResolvedValue(null);
 
-      const result = await getUserById("nonexistentuser");
+      const result = await fetchUserById("nonexistentuser");
 
       expect(result).toBeNull();
     });
@@ -63,7 +63,7 @@ describe("Users Controller", () => {
     it.each([null, undefined, ""])(
       "should throw error if userId is %s",
       async (userId) => {
-        await expect(getUserById(userId)).rejects.toThrow(
+        await expect(fetchUserById(userId)).rejects.toThrow(
           "User ID is required"
         );
       }
@@ -74,7 +74,7 @@ describe("Users Controller", () => {
         new Error("Database connection failed")
       );
 
-      await expect(getUserById("user123")).rejects.toThrow(
+      await expect(fetchUserById("user123")).rejects.toThrow(
         "Error fetching user"
       );
     });
@@ -88,7 +88,7 @@ describe("Users Controller", () => {
       ];
       mockUserFind.mockResolvedValue(mockUsers);
 
-      const result = await getAllUsers();
+      const result = await fetchAllUsers();
 
       expect(mockUserFind).toHaveBeenCalled();
       expect(result).toEqual(mockUsers);
@@ -97,7 +97,7 @@ describe("Users Controller", () => {
     it("should return empty array if no users exist", async () => {
       mockUserFind.mockResolvedValue([]);
 
-      const result = await getAllUsers();
+      const result = await fetchAllUsers();
 
       expect(result).toEqual([]);
     });
@@ -105,7 +105,7 @@ describe("Users Controller", () => {
     it("should handle database errors", async () => {
       mockUserFind.mockRejectedValue(new Error("Database error"));
 
-      await expect(getAllUsers()).rejects.toThrow("Error fetching users");
+      await expect(fetchAllUsers()).rejects.toThrow("Error fetching users");
     });
   });
 
@@ -118,7 +118,7 @@ describe("Users Controller", () => {
       };
       mockUserFindOne.mockResolvedValue(mockUser);
 
-      const result = await getUserByEmail("user@example.com");
+      const result = await fetchUserByEmail("user@example.com");
 
       expect(mockUserFindOne).toHaveBeenCalledWith({
         email: "user@example.com",
@@ -129,7 +129,7 @@ describe("Users Controller", () => {
     it("should return null if email does not exist", async () => {
       mockUserFindOne.mockResolvedValue(null);
 
-      const result = await getUserByEmail("nonexistent@example.com");
+      const result = await fetchUserByEmail("nonexistent@example.com");
 
       expect(result).toBeNull();
     });
@@ -137,7 +137,7 @@ describe("Users Controller", () => {
     it("should handle database errors", async () => {
       mockUserFindOne.mockRejectedValue(new Error("Database error"));
 
-      await expect(getUserByEmail("user@example.com")).rejects.toThrow(
+      await expect(fetchUserByEmail("user@example.com")).rejects.toThrow(
         "Error fetching user by email"
       );
     });
@@ -152,7 +152,7 @@ describe("Users Controller", () => {
       };
       mockUserFindOne.mockResolvedValue(mockUser);
 
-      const result = await getUserByUsername("testuser");
+      const result = await fetchUserByUsername("testuser");
 
       expect(mockUserFindOne).toHaveBeenCalledWith({
         username: "testuser",
@@ -163,7 +163,7 @@ describe("Users Controller", () => {
     it("should return null if username does not exist", async () => {
       mockUserFindOne.mockResolvedValue(null);
 
-      const result = await getUserByUsername("nonexistentuser");
+      const result = await fetchUserByUsername("nonexistentuser");
 
       expect(result).toBeNull();
     });
@@ -171,7 +171,7 @@ describe("Users Controller", () => {
     it.each([null, undefined])(
       "should throw error if username is %s",
       async (username) => {
-        await expect(getUserByUsername(username)).rejects.toThrow(
+        await expect(fetchUserByUsername(username)).rejects.toThrow(
           "Username is required"
         );
       }
@@ -180,7 +180,7 @@ describe("Users Controller", () => {
     it("should handle database errors", async () => {
       mockUserFindOne.mockRejectedValue(new Error("Database error"));
 
-      await expect(getUserByUsername("testuser")).rejects.toThrow(
+      await expect(fetchUserByUsername("testuser")).rejects.toThrow(
         "Error fetching user by username"
       );
     });
@@ -200,7 +200,7 @@ describe("Users Controller", () => {
       };
       mockUserFindByIdAndUpdate.mockResolvedValue(updatedUser);
 
-      const result = await updateUser("user123", updateData);
+      const result = await updateUserById("user123", updateData);
 
       expect(mockUserFindByIdAndUpdate).toHaveBeenCalledWith(
         "user123",
@@ -222,7 +222,7 @@ describe("Users Controller", () => {
         first_name: "Jane",
       });
 
-      await updateUser("user123", updateData);
+      await updateUserById("user123", updateData);
 
       const callArgs = mockUserFindByIdAndUpdate.mock.calls[0][1];
       expect(callArgs).toHaveProperty("first_name");
@@ -234,7 +234,7 @@ describe("Users Controller", () => {
     it.each([null, undefined])(
       "should throw error if userId is %s",
       async (userId) => {
-        await expect(updateUser(userId, {})).rejects.toThrow(
+        await expect(updateUserById(userId, {})).rejects.toThrow(
           "User ID is required"
         );
       }
@@ -244,7 +244,7 @@ describe("Users Controller", () => {
       mockUserFindByIdAndUpdate.mockRejectedValue(new Error("Update failed"));
 
       await expect(
-        updateUser("user123", { first_name: "Jane" })
+        updateUserById("user123", { first_name: "Jane" })
       ).rejects.toThrow("Error updating user");
     });
   });
@@ -256,7 +256,7 @@ describe("Users Controller", () => {
         username: "testuser",
       });
 
-      const result = await deleteUser("user123");
+      const result = await deleteUserById("user123");
 
       expect(mockUserFindByIdAndDelete).toHaveBeenCalledWith("user123");
       expect(result).toBe(true);
@@ -265,7 +265,7 @@ describe("Users Controller", () => {
     it("should return true even if user not found", async () => {
       mockUserFindByIdAndDelete.mockResolvedValue(null);
 
-      const result = await deleteUser("nonexistentuser");
+      const result = await deleteUserById("nonexistentuser");
 
       expect(result).toBe(true);
     });
@@ -273,7 +273,7 @@ describe("Users Controller", () => {
     it("should handle database errors", async () => {
       mockUserFindByIdAndDelete.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(deleteUser("user123")).rejects.toThrow(
+      await expect(deleteUserById("user123")).rejects.toThrow(
         "Error deleting user"
       );
     });
@@ -297,7 +297,7 @@ describe("Users Controller", () => {
         favourite_restaurants: mockFavourites,
       });
 
-      const result = await getFavouriteRestaurants("user123");
+      const result = await fetchFavouriteRestaurants("user123");
 
       expect(mockUserFindById).toHaveBeenCalledWith("user123");
       expect(result).toEqual(mockFavourites);
@@ -310,7 +310,7 @@ describe("Users Controller", () => {
         favourite_restaurants: [],
       });
 
-      const result = await getFavouriteRestaurants("user123");
+      const result = await fetchFavouriteRestaurants("user123");
 
       expect(result).toEqual([]);
     });
@@ -318,7 +318,7 @@ describe("Users Controller", () => {
     it("should return null if user does not exist", async () => {
       setupPopulateMock(null);
 
-      const result = await getFavouriteRestaurants("nonexistentuser");
+      const result = await fetchFavouriteRestaurants("nonexistentuser");
 
       expect(result).toBeNull();
     });
@@ -326,7 +326,7 @@ describe("Users Controller", () => {
     it.each([null, undefined])(
       "should throw error if userId is %s",
       async (userId) => {
-        await expect(getFavouriteRestaurants(userId)).rejects.toThrow(
+        await expect(fetchFavouriteRestaurants(userId)).rejects.toThrow(
           "User ID is required"
         );
       }
@@ -337,7 +337,7 @@ describe("Users Controller", () => {
         populate: jest.fn().mockRejectedValue(new Error("Database error")),
       });
 
-      await expect(getFavouriteRestaurants("user123")).rejects.toThrow(
+      await expect(fetchFavouriteRestaurants("user123")).rejects.toThrow(
         "Error fetching favourite restaurants"
       );
     });
