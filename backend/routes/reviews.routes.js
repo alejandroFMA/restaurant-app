@@ -12,8 +12,7 @@ const router = express.Router();
 
 router.post("/", authorize(), async (req, res) => {
   try {
-    const payload = { ...req.body, user: req.user.id };
-    const newReview = await createReview(payload);
+    const newReview = await createReview(req.user, req.body);
     res.status(201).json(newReview);
   } catch (error) {
     res.status(500).json({ error: error.message });

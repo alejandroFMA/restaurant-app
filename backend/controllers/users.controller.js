@@ -1,6 +1,6 @@
 import User from "../models/User.model.js";
 
-const getUserById = async (userId) => {
+const fetchUserById = async (userId) => {
   try {
     if (!userId) {
       throw new Error("User ID is required");
@@ -12,7 +12,7 @@ const getUserById = async (userId) => {
   }
 };
 
-const getAllUsers = async () => {
+const fetchAllUsers = async () => {
   try {
     const users = await User.find();
     return users;
@@ -21,7 +21,7 @@ const getAllUsers = async () => {
   }
 };
 
-const getUserByEmail = async (email) => {
+const fetchUserByEmail = async (email) => {
   try {
     const user = await User.findOne({ email });
     return user;
@@ -30,7 +30,7 @@ const getUserByEmail = async (email) => {
   }
 };
 
-const getUserByUsername = async (username) => {
+const fetchUserByUsername = async (username) => {
   try {
     if (!username) {
       throw new Error("Username is required");
@@ -44,7 +44,7 @@ const getUserByUsername = async (username) => {
 
 const userWhiteList = ["first_name", "last_name", "username"];
 
-const updateUser = async (userId, data) => {
+const updateUserById = async (userId, data) => {
   try {
     if (!userId) {
       throw new Error("User ID is required");
@@ -63,7 +63,7 @@ const updateUser = async (userId, data) => {
   }
 };
 
-const deleteUser = async (userId) => {
+const deleteUserById = async (userId) => {
   try {
     await User.findByIdAndDelete(userId);
     return true;
@@ -72,7 +72,7 @@ const deleteUser = async (userId) => {
   }
 };
 
-const getFavouriteRestaurants = async (userId) => {
+const fetchFavouriteRestaurants = async (userId) => {
   try {
     if (!userId) {
       throw new Error("User ID is required");
@@ -94,11 +94,11 @@ const getFavouriteRestaurants = async (userId) => {
 };
 
 export {
-  getUserById,
-  updateUser,
-  deleteUser,
-  getAllUsers,
-  getUserByEmail,
-  getUserByUsername,
-  getFavouriteRestaurants,
+  fetchUserById,
+  updateUserById,
+  deleteUserById,
+  fetchAllUsers,
+  fetchUserByEmail,
+  fetchUserByUsername,
+  fetchFavouriteRestaurants,
 };

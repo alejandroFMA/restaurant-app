@@ -38,14 +38,13 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await hashPassword(password);
-    const newUser = new User({
+    const savedUser = await User.create({
       username,
       email,
       password: hashedPassword,
       first_name: firstName,
       last_name: lastName,
     });
-    const savedUser = await newUser.save();
 
     const userResponse = savedUser.toObject();
     delete userResponse.password;
@@ -75,8 +74,9 @@ const login = async (req, res) => {
 
     console.log("User logged in:", user);
 
+    const userId = user.id || user._id?.toString();
     const token = jwt.sign(
-      { id: user.id, is_admin: user.is_admin },
+      { id: userId, is_admin: user.is_admin },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
