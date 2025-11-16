@@ -1,4 +1,3 @@
-import User from "../schema/User.schema.js";
 import {
   fetchUserById,
   fetchUserByEmail,
@@ -7,7 +6,7 @@ import {
   fetchFavouriteRestaurants,
   updateUserById,
   deleteUserById,
-} from "../repository/user.repository.js";
+} from "../repository/users.repository.js";
 
 const getUserById = async (req, res) => {
   try {

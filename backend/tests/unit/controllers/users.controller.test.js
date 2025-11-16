@@ -1,6 +1,5 @@
 import { jest } from "@jest/globals";
 
-// Mock del repository
 const mockFetchUserById = jest.fn();
 const mockFetchAllUsers = jest.fn();
 const mockFetchUserByEmail = jest.fn();
@@ -9,7 +8,7 @@ const mockUpdateUserById = jest.fn();
 const mockDeleteUserById = jest.fn();
 const mockFetchFavouriteRestaurants = jest.fn();
 
-jest.unstable_mockModule("../../../repository/user.repository.js", () => ({
+jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
   fetchUserById: mockFetchUserById,
   fetchAllUsers: mockFetchAllUsers,
   fetchUserByEmail: mockFetchUserByEmail,
@@ -20,13 +19,13 @@ jest.unstable_mockModule("../../../repository/user.repository.js", () => ({
 }));
 
 const {
-  fetchUserById,
-  fetchAllUsers,
-  fetchUserByEmail,
-  fetchUserByUsername,
-  updateUserById,
-  deleteUserById,
-  fetchFavouriteRestaurants,
+  getUserById,
+  getAllUsers,
+  getUserByEmail,
+  getUserByUsername,
+  updateUser,
+  deleteUser,
+  getFavouriteRestaurants,
 } = await import("../../../controllers/users.controller.js");
 
 describe("Users Controller", () => {

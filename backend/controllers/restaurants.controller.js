@@ -1,6 +1,15 @@
-import Restaurant from "../schema/Restaurant.schema.js";
+import {
+  createRestaurant as createRestaurantRepository,
+  fetchRestaurantById,
+  fetchAllRestaurants,
+  fetchRestaurantByName,
+  fetchTopRestaurants,
+  updateRestaurantById,
+  deleteRestaurantById,
+} from "../repository/restaurants.repository.js";
+import { isValidLatLng } from "../utils/checkUserFields.js";
 
-const createRestaurant = async (data) => {
+const createRestaurant = async (req, res) => {
   try {
     const {
       name,
@@ -11,7 +20,7 @@ const createRestaurant = async (data) => {
       cuisine_type,
       operating_hours,
       photograph,
-    } = data;
+    } = req.body;
 
     if (
       !name ||
@@ -23,10 +32,16 @@ const createRestaurant = async (data) => {
       !operating_hours ||
       !photograph
     ) {
-      throw new Error("All restaurant fields are required");
+      return res
+        .status(400)
+        .json({ error: "All restaurant fields are required" });
     }
 
-    const savedRestaurant = await Restaurant.create({
+    if (!isValidLatLng(latlng)) {
+      return res.status(400).json({ error: "Invalid latitude or longitude" });
+    }
+
+    const savedRestaurant = await createRestaurantRepository({
       name,
       neighborhood,
       address,
@@ -36,103 +51,107 @@ const createRestaurant = async (data) => {
       operating_hours,
       photograph,
     });
-    return savedRestaurant;
+    res.status(201).json(savedRestaurant);
   } catch (error) {
-    throw new Error("Error creating restaurant: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchRestaurantById = async (restaurantId) => {
+const getRestaurantById = async (req, res) => {
+  const restaurantId = req.params.id;
   try {
     if (!restaurantId) {
       throw new Error("Restaurant ID is required");
     }
-    const restaurant = await Restaurant.findById(restaurantId);
+    const restaurant = await fetchRestaurantById(restaurantId);
     if (!restaurant) {
       throw new Error("Restaurant not found");
     }
 
-    return restaurant;
+    res.status(200).json(restaurant);
   } catch (error) {
-    throw new Error("Error fetching restaurant: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchAllRestaurants = async () => {
+const getAllRestaurants = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find();
-    return restaurants;
+    const restaurants = await fetchAllRestaurants();
+    res.status(200).json(restaurants);
   } catch (error) {
-    throw new Error("Error fetching restaurants: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchRestaurantByName = async (name) => {
+const getRestaurantByName = async (req, res) => {
+  const name = req.params.name;
   try {
     if (!name) {
-      throw new Error("Restaurant name is required");
+      return res.status(400).json({ error: "Restaurant name is required" });
     }
-    const restaurant = await Restaurant.findOne({ name: name });
+    const restaurant = await fetchRestaurantByName(name);
     if (!restaurant) {
       throw new Error("Restaurant not found");
     }
-    return restaurant;
+    res.status(200).json(restaurant);
   } catch (error) {
-    throw new Error("Error fetching restaurant: " + error.message);
+    res
+      .status(500)
+      .json({ error: "Error fetching restaurant: " + error.message });
   }
 };
 
-const fetchTopRestaurants = async () => {
+const getTopRestaurants = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find()
-      .sort({ average_rating: -1 })
-      .limit(5);
-    return restaurants;
+    const restaurants = await fetchTopRestaurants();
+    res.status(200).json(restaurants);
   } catch (error) {
-    throw new Error("Error fetching top restaurants: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const updateRestaurant = async (restaurantId, updateData) => {
+const updateRestaurant = async (req, res) => {
+  const restaurantId = req.params.id;
+  const updateData = req.body;
   try {
     if (!restaurantId) {
-      throw new Error("Restaurant ID is required");
+      return res.status(400).json({ error: "Restaurant ID is required" });
     }
-    const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+    const updatedRestaurant = await updateRestaurantById(
       restaurantId,
-      updateData,
-      { new: true }
+      updateData
     );
     if (!updatedRestaurant) {
-      throw new Error("Restaurant not found");
+      return res.status(404).json({ error: "Restaurant not found" });
     }
-    return updatedRestaurant;
+    res.status(200).json(updatedRestaurant);
   } catch (error) {
-    throw new Error("Error updating restaurant: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const deleteRestaurant = async (restaurantId) => {
+const deleteRestaurant = async (req, res) => {
+  const restaurantId = req.params.id;
   try {
     if (!restaurantId) {
-      throw new Error("Restaurant ID is required");
+      return res.status(400).json({ error: "Restaurant ID is required" });
     }
-    const deletedRestaurant = await Restaurant.findByIdAndDelete(restaurantId);
+    const deletedRestaurant = await deleteRestaurantById(restaurantId);
     if (!deletedRestaurant) {
-      throw new Error("Restaurant not found");
+      return res.status(404).json({ error: "Restaurant not found" });
     }
-    return deletedRestaurant;
+    res.status(200).json({ message: "Restaurant deleted successfully" });
   } catch (error) {
-    throw new Error("Error deleting restaurant: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
 export {
   createRestaurant,
-  fetchRestaurantById,
-  fetchAllRestaurants,
-  fetchRestaurantByName,
-  fetchTopRestaurants,
+  getRestaurantById,
+  getAllRestaurants,
+  getRestaurantByName,
+  getTopRestaurants,
   updateRestaurant,
   deleteRestaurant,
 };
