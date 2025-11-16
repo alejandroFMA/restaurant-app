@@ -3,8 +3,8 @@ import User from "../models/User.model.js";
 import Restaurant from "../models/Restaurant.model.js";
 import { updateRestaurantAvgRating } from "../service/ReviewService.js";
 
-const createReview = async (data) => {
-  const { user, restaurant, rating, review } = data;
+const createReview = async (user, data) => {
+  const { restaurant, rating, review } = data;
   if (!user || !restaurant || !rating) {
     throw new Error("User, restaurant, and rating are required");
   }

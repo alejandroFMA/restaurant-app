@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const reviewSchema = new mongoose.Schema(
+const ReviewSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -27,7 +27,7 @@ const reviewSchema = new mongoose.Schema(
 );
 
 // Only one review per user per restaurant
-reviewSchema.index({ user: 1, restaurant: 1 }, { unique: true });
+ReviewSchema.index({ user: 1, restaurant: 1 }, { unique: true });
 
-const Review = mongoose.model("Review", reviewSchema);
+const Review = mongoose.model("Review", ReviewSchema);
 export default Review;
