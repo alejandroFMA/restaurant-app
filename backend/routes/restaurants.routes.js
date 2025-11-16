@@ -8,11 +8,11 @@ import {
   updateRestaurant,
   deleteRestaurant,
 } from "../controllers/restaurants.controller.js";
-import { authorizedUser, adminOnly } from "../middleware/authentication.js";
+import { authorize } from "../middleware/authentication.js";
 
 const router = express.Router();
 
-router.get("/top", authorizedUser, async (req, res) => {
+router.get("/top", authorize(), async (req, res) => {
   try {
     const restaurants = await fechtTopRestaurants();
     res.json(restaurants);
@@ -21,7 +21,7 @@ router.get("/top", authorizedUser, async (req, res) => {
   }
 });
 
-router.get("/name/:name", authorizedUser, async (req, res) => {
+router.get("/name/:name", authorize(), async (req, res) => {
   try {
     const restaurant = await fetchRestaurantByName(req.params.name);
     if (!restaurant)
@@ -32,7 +32,7 @@ router.get("/name/:name", authorizedUser, async (req, res) => {
   }
 });
 
-router.get("/:id", authorizedUser, async (req, res) => {
+router.get("/:id", authorize(), async (req, res) => {
   try {
     const restaurant = await fetchRestaurantById(req.params.id);
     if (!restaurant)
@@ -43,7 +43,7 @@ router.get("/:id", authorizedUser, async (req, res) => {
   }
 });
 
-router.get("/", authorizedUser, async (req, res) => {
+router.get("/", authorize(), async (req, res) => {
   try {
     const restaurants = await fetchAllRestaurants();
     res.json(restaurants);
@@ -52,7 +52,7 @@ router.get("/", authorizedUser, async (req, res) => {
   }
 });
 
-router.post("/", authorizedUser, adminOnly, async (req, res) => {
+router.post("/", authorize("admin"), async (req, res) => {
   try {
     const newRestaurant = await createRestaurant(req.body);
     res.status(201).json(newRestaurant);
@@ -61,7 +61,7 @@ router.post("/", authorizedUser, adminOnly, async (req, res) => {
   }
 });
 
-router.put("/:id", authorizedUser, adminOnly, async (req, res) => {
+router.put("/:id", authorize("admin"), async (req, res) => {
   try {
     const updatedRestaurant = await updateRestaurant(req.params.id, req.body);
     if (!updatedRestaurant)
@@ -71,7 +71,7 @@ router.put("/:id", authorizedUser, adminOnly, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-router.delete("/:id", authorizedUser, adminOnly, async (req, res) => {
+router.delete("/:id", authorize("admin"), async (req, res) => {
   try {
     const deletedRestaurant = await deleteRestaurant(req.params.id);
     if (!deletedRestaurant)
