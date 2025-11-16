@@ -26,7 +26,7 @@ const createRestaurant = async (data) => {
       throw new Error("All restaurant fields are required");
     }
 
-    const newRestaurant = new Restaurant({
+    const savedRestaurant = await Restaurant.create({
       name,
       neighborhood,
       address,
@@ -36,8 +36,6 @@ const createRestaurant = async (data) => {
       operating_hours,
       photograph,
     });
-
-    const savedRestaurant = await newRestaurant.save();
     return savedRestaurant;
   } catch (error) {
     throw new Error("Error creating restaurant: " + error.message);

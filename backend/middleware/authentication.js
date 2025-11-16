@@ -12,7 +12,12 @@ const authorize = (requiredRole) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
+
+      req.user = {
+        id: decoded.id || decoded.userId,
+        is_admin:
+          decoded.is_admin !== undefined ? decoded.is_admin : decoded.isAdmin,
+      };
 
       if (requiredRole === "admin" && !req.user.is_admin) {
         return res.status(403).json({ error: "Forbidden: admin only" });
@@ -25,17 +30,39 @@ const authorize = (requiredRole) => {
   };
 };
 
-const ownerOrAdmin = (req, res, next) => {
-  const userId = req.user.id;
-  const resourceUserId = req.body.userId || req.params.userId;
+const ownerOrAdmin = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const resourceUserId = req.body.userId || req.params.userId;
+    const reviewId = req.params.reviewId;
 
-  if (req.user.is_admin || userId === resourceUserId) {
-    return next();
+    if (reviewId) {
+      const Review = (await import("../models/Review.model.js")).default;
+      const review = await Review.findById(reviewId);
+
+      if (!review) {
+        return res.status(404).json({ error: "Resource not found" });
+      }
+
+      if (req.user.is_admin || review.user.toString() === userId) {
+        return next();
+      }
+
+      return res.status(403).json({
+        error: "Unauthorized: You can only modify your own resources",
+      });
+    }
+
+    if (req.user.is_admin || userId === resourceUserId) {
+      return next();
+    }
+
+    return res.status(403).json({
+      error: "Unauthorized: You can only modify your own resources",
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
-
-  return res.status(403).json({
-    error: "Unauthorized: You can only modify your own resources",
-  });
 };
 
 export { authorize, ownerOrAdmin };

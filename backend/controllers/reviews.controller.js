@@ -21,8 +21,7 @@ const createReview = async (user, data) => {
     throw new Error("User has already reviewed this restaurant");
   }
 
-  const newReview = new Review({ user, restaurant, rating, review });
-  const savedReview = await newReview.save();
+  const savedReview = await Review.create({ user, restaurant, rating, review });
 
   await updateRestaurantAvgRating(restaurant);
   return savedReview;
