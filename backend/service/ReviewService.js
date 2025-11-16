@@ -1,5 +1,5 @@
-import Restaurant from "../models/Restaurant.model.js";
-import Review from "../models/Review.model.js";
+import Restaurant from "../schema/Restaurant.schema.js";
+import Review from "../schema/Review.schema.js";
 
 export const updateRestaurantAvgRating = async (restaurantId) => {
   const restaurant = await Restaurant.findById(restaurantId);

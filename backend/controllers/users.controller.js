@@ -1,104 +1,105 @@
-import User from "../models/User.model.js";
+import User from "../schema/User.schema.js";
+import {
+  fetchUserById,
+  fetchUserByEmail,
+  fetchUserByUsername,
+  fetchAllUsers,
+  fetchFavouriteRestaurants,
+  updateUserById,
+  deleteUserById,
+} from "../repository/user.repository.js";
 
-const fetchUserById = async (userId) => {
+const getUserById = async (req, res) => {
   try {
-    if (!userId) {
-      throw new Error("User ID is required");
-    }
-    const user = await User.findById(userId);
-    return user;
+    const userId = req.params.id;
+    if (!userId) throw new Error("User ID is required");
+    const user = await fetchUserById(userId);
+    if (!user) throw new Error("User not found");
+    res.status(200).json(user);
   } catch (error) {
-    throw new Error("Error fetching user: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchAllUsers = async () => {
+const getUserByEmail = async (req, res) => {
+  const email = req.params.email;
   try {
-    const users = await User.find();
-    return users;
+    const user = await fetchUserByEmail(email);
+    if (!user) throw new Error("User not found");
+    res.status(200).json(user);
   } catch (error) {
-    throw new Error("Error fetching users: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchUserByEmail = async (email) => {
+const getAllUsers = async (req, res) => {
   try {
-    const user = await User.findOne({ email });
-    return user;
+    const users = await fetchAllUsers();
+    res.json(users);
   } catch (error) {
-    throw new Error("Error fetching user by email: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchUserByUsername = async (username) => {
+const getUserByUsername = async (req, res) => {
+  const username = req.params.username;
   try {
-    if (!username) {
-      throw new Error("Username is required");
-    }
-    const user = await User.findOne({ username });
-    return user;
+    const user = await fetchUserByUsername(username);
+    if (!user) throw new Error("User not found");
+    res.status(200).json(user);
   } catch (error) {
-    throw new Error("Error fetching user by username: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
 const userWhiteList = ["first_name", "last_name", "username"];
 
-const updateUserById = async (userId, data) => {
+const updateUser = async (req, res) => {
   try {
-    if (!userId) {
-      throw new Error("User ID is required");
-    }
+    const userId = req.params.id;
+    if (!userId) throw new Error("User ID is required");
 
     const filteredData = Object.fromEntries(
-      Object.entries(data).filter(([key]) => userWhiteList.includes(key))
+      Object.entries(req.body).filter(([key]) => userWhiteList.includes(key))
     );
-
-    const updatedUser = await User.findByIdAndUpdate(userId, filteredData, {
-      new: true,
-    });
-    return updatedUser;
+    const user = await updateUserById(userId, filteredData);
+    if (!user) throw new Error("User not found");
+    res.status(200).json(user);
   } catch (error) {
-    throw new Error("Error updating user: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const deleteUserById = async (userId) => {
+const deleteUser = async (req, res) => {
   try {
-    await User.findByIdAndDelete(userId);
-    return true;
+    const userId = req.params.id;
+    if (!userId) throw new Error("User ID is required");
+    const user = await deleteUserById(userId);
+    if (!user) throw new Error("User not found");
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    throw new Error("Error deleting user: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
-const fetchFavouriteRestaurants = async (userId) => {
+const getFavouriteRestaurants = async (req, res) => {
   try {
-    if (!userId) {
-      throw new Error("User ID is required");
-    }
-    const user = await User.findById(userId).populate({
-      path: "favourite_restaurants",
-      select: "name -__v",
-      model: "Restaurant",
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    return user.favourite_restaurants;
+    const userId = req.params.id;
+    if (!userId) throw new Error("User ID is required");
+    const user = await fetchFavouriteRestaurants(userId);
+    if (!user) throw new Error("User not found");
+    res.status(200).json(user.favourite_restaurants);
   } catch (error) {
-    throw new Error("Error fetching favourite restaurants: " + error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
 export {
-  fetchUserById,
-  updateUserById,
-  deleteUserById,
-  fetchAllUsers,
-  fetchUserByEmail,
-  fetchUserByUsername,
-  fetchFavouriteRestaurants,
+  getUserById,
+  getUserByEmail,
+  getUserByUsername,
+  updateUser,
+  deleteUser,
+  getFavouriteRestaurants,
+  getAllUsers,
 };

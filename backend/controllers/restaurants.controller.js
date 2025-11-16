@@ -1,4 +1,4 @@
-import Restaurant from "../models/Restaurant.model.js";
+import Restaurant from "../schema/Restaurant.schema.js";
 
 const createRestaurant = async (data) => {
   try {

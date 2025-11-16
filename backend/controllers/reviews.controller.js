@@ -1,6 +1,6 @@
-import Review from "../models/Review.model.js";
-import User from "../models/User.model.js";
-import Restaurant from "../models/Restaurant.model.js";
+import Review from "../schema/Review.schema.js";
+import User from "../schema/User.schema.js";
+import Restaurant from "../schema/Restaurant.schema.js";
 import { updateRestaurantAvgRating } from "../service/ReviewService.js";
 
 const createReview = async (user, data) => {

@@ -37,7 +37,7 @@ const ownerOrAdmin = async (req, res, next) => {
     const reviewId = req.params.reviewId;
 
     if (reviewId) {
-      const Review = (await import("../models/Review.model.js")).default;
+      const Review = (await import("../schema/Review.schema.js")).default;
       const review = await Review.findById(reviewId);
 
       if (!review) {

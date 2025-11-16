@@ -1,4 +1,4 @@
-import User from "../models/User.model.js";
+import User from "../schema/User.schema.js";
 import jwt from "jsonwebtoken";
 import { hashPassword, comparePassword } from "../utils/encryptPassword.js";
 import { isValidEmail, isPasswordValid } from "../utils/checkUserFields.js";
