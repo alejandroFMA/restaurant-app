@@ -20,13 +20,13 @@ jest.unstable_mockModule("../../../repository/user.repository.js", () => ({
 }));
 
 const {
-  getUserById,
-  getAllUsers,
-  getUserByEmail,
-  getUserByUsername,
-  updateUser,
-  deleteUser,
-  getFavouriteRestaurants,
+  fetchUserById,
+  fetchAllUsers,
+  fetchUserByEmail,
+  fetchUserByUsername,
+  updateUserById,
+  deleteUserById,
+  fetchFavouriteRestaurants,
 } = await import("../../../controllers/users.controller.js");
 
 describe("Users Controller", () => {
