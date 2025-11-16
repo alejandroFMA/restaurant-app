@@ -72,8 +72,6 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    console.log("User logged in:", user);
-
     const userId = user.id || user._id?.toString();
     const token = jwt.sign(
       { id: userId, is_admin: user.is_admin },
