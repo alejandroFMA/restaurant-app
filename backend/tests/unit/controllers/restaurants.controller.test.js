@@ -26,7 +26,7 @@ const {
   fetchRestaurantById,
   fetchAllRestaurants,
   fetchRestaurantByName,
-  fechtTopRestaurants,
+  fetchTopRestaurants,
   updateRestaurant,
   deleteRestaurant,
 } = await import("../../../controllers/restaurants.controller.js");
@@ -213,7 +213,7 @@ describe("Restaurants Controller", () => {
       ];
       setupTopRestaurantsQuery(mockTopRestaurants);
 
-      const result = await fechtTopRestaurants();
+      const result = await fetchTopRestaurants();
 
       expect(result).toEqual(mockTopRestaurants);
     });
@@ -225,7 +225,7 @@ describe("Restaurants Controller", () => {
       ];
       setupTopRestaurantsQuery(mockTopRestaurants);
 
-      const result = await fechtTopRestaurants();
+      const result = await fetchTopRestaurants();
 
       expect(result.length).toBe(2);
     });
@@ -237,7 +237,7 @@ describe("Restaurants Controller", () => {
         }),
       });
 
-      await expect(fechtTopRestaurants()).rejects.toThrow(
+      await expect(fetchTopRestaurants()).rejects.toThrow(
         "Error fetching top restaurants"
       );
     });
