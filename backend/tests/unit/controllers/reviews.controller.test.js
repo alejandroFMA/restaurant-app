@@ -66,7 +66,7 @@ describe("Reviews Controller", () => {
       };
       mockCreateReview.mockResolvedValue(mockReview);
 
-      await createReview(req, res);
+      await createReview(req, res, next);
 
       expect(mockCreateReview).toHaveBeenCalledWith({
         user: "user123",
@@ -74,8 +74,12 @@ describe("Reviews Controller", () => {
         rating: 5,
         review: "Great food and service!",
       });
+      expect(mockUpdateRestaurantAvgRating).toHaveBeenCalledWith(
+        "restaurant456"
+      );
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(mockReview);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should create review with only required fields", async () => {
@@ -93,7 +97,7 @@ describe("Reviews Controller", () => {
       };
       mockCreateReview.mockResolvedValue(mockReview);
 
-      await createReview(req, res);
+      await createReview(req, res, next);
 
       expect(mockCreateReview).toHaveBeenCalledWith({
         user: "user123",
@@ -101,51 +105,12 @@ describe("Reviews Controller", () => {
         rating: 4,
         review: undefined,
       });
+      expect(mockUpdateRestaurantAvgRating).toHaveBeenCalledWith(
+        "restaurant456"
+      );
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(mockReview);
-    });
-
-    it("should return 400 when user is missing", async () => {
-      req.user = {};
-      req.body = {
-        restaurant: "restaurant456",
-        rating: 5,
-      };
-
-      await createReview(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "User, restaurant, and rating are required",
-      });
-    });
-
-    it("should return 400 when restaurant is missing", async () => {
-      req.user = { id: "user123" };
-      req.body = {
-        rating: 5,
-      };
-
-      await createReview(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "User, restaurant, and rating are required",
-      });
-    });
-
-    it("should return 400 when rating is missing", async () => {
-      req.user = { id: "user123" };
-      req.body = {
-        restaurant: "restaurant456",
-      };
-
-      await createReview(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "User, restaurant, and rating are required",
-      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
@@ -156,10 +121,10 @@ describe("Reviews Controller", () => {
       };
       mockCreateReview.mockRejectedValue(new Error("Database error"));
 
-      await createReview(req, res);
+      await createReview(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -176,32 +141,37 @@ describe("Reviews Controller", () => {
       req.params.reviewId = "review123";
       mockFetchReviewById.mockResolvedValue(mockReview);
 
-      await getReviewById(req, res);
+      await getReviewById(req, res, next);
 
       expect(mockFetchReviewById).toHaveBeenCalledWith("review123");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockReview);
+      expect(next).not.toHaveBeenCalled();
     });
 
-    it("should return 400 if reviewId is not provided", async () => {
-      req.params.reviewId = undefined;
+    it("should return 404 if review does not exist", async () => {
+      req.params.reviewId = "review123";
+      mockFetchReviewById.mockResolvedValue(null);
 
-      await getReviewById(req, res);
+      await getReviewById(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Review ID is required",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Review not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.params.reviewId = "review123";
       mockFetchReviewById.mockRejectedValue(new Error("Database error"));
 
-      await getReviewById(req, res);
+      await getReviewById(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -226,33 +196,25 @@ describe("Reviews Controller", () => {
       req.params.restaurantId = "restaurant456";
       mockFetchAllReviewsForRestaurant.mockResolvedValue(mockReviews);
 
-      await getReviewsForRestaurant(req, res);
+      await getReviewsForRestaurant(req, res, next);
 
       expect(mockFetchAllReviewsForRestaurant).toHaveBeenCalledWith(
         "restaurant456"
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockReviews);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return empty array if no reviews exist", async () => {
       req.params.restaurantId = "restaurant456";
       mockFetchAllReviewsForRestaurant.mockResolvedValue([]);
 
-      await getReviewsForRestaurant(req, res);
+      await getReviewsForRestaurant(req, res, next);
 
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith([]);
-    });
-
-    it("should return 400 if restaurantId is not provided", async () => {
-      req.params.restaurantId = undefined;
-
-      await getReviewsForRestaurant(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Restaurant ID is required",
-      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
@@ -261,10 +223,10 @@ describe("Reviews Controller", () => {
         new Error("Database error")
       );
 
-      await getReviewsForRestaurant(req, res);
+      await getReviewsForRestaurant(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -289,41 +251,33 @@ describe("Reviews Controller", () => {
       req.params.userId = "user123";
       mockFetchAllReviewsByUser.mockResolvedValue(mockReviews);
 
-      await getReviewsByUser(req, res);
+      await getReviewsByUser(req, res, next);
 
       expect(mockFetchAllReviewsByUser).toHaveBeenCalledWith("user123");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockReviews);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return empty array if no reviews exist", async () => {
       req.params.userId = "user123";
       mockFetchAllReviewsByUser.mockResolvedValue([]);
 
-      await getReviewsByUser(req, res);
+      await getReviewsByUser(req, res, next);
 
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith([]);
-    });
-
-    it("should return 400 if userId is not provided", async () => {
-      req.params.userId = undefined;
-
-      await getReviewsByUser(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "User ID is required",
-      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.params.userId = "user123";
       mockFetchAllReviewsByUser.mockRejectedValue(new Error("Database error"));
 
-      await getReviewsByUser(req, res);
+      await getReviewsByUser(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -341,7 +295,7 @@ describe("Reviews Controller", () => {
       req.body = updateData;
       mockUpdateReviewById.mockResolvedValue(updatedReview);
 
-      await updateReview(req, res);
+      await updateReview(req, res, next);
 
       expect(mockUpdateReviewById).toHaveBeenCalledWith(
         "review123",
@@ -352,6 +306,7 @@ describe("Reviews Controller", () => {
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(updatedReview);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if review not found", async () => {
@@ -359,22 +314,15 @@ describe("Reviews Controller", () => {
       req.body = { rating: 4 };
       mockUpdateReviewById.mockResolvedValue(null);
 
-      await updateReview(req, res);
+      await updateReview(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "Review not found" });
-    });
-
-    it("should return 400 if reviewId is not provided", async () => {
-      req.params.reviewId = undefined;
-      req.body = { rating: 4 };
-
-      await updateReview(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Review ID is required",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Review not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
@@ -382,10 +330,10 @@ describe("Reviews Controller", () => {
       req.body = { rating: 4 };
       mockUpdateReviewById.mockRejectedValue(new Error("Update failed"));
 
-      await updateReview(req, res);
+      await updateReview(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Update failed" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -401,7 +349,7 @@ describe("Reviews Controller", () => {
       req.params.reviewId = "review123";
       mockDeleteReviewById.mockResolvedValue(deletedReview);
 
-      await deleteReview(req, res);
+      await deleteReview(req, res, next);
 
       expect(mockDeleteReviewById).toHaveBeenCalledWith("review123");
       expect(mockUpdateRestaurantAvgRating).toHaveBeenCalledWith(
@@ -411,37 +359,32 @@ describe("Reviews Controller", () => {
       expect(res.json).toHaveBeenCalledWith({
         message: "Review deleted successfully",
       });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if review not found", async () => {
       req.params.reviewId = "nonexistent";
       mockDeleteReviewById.mockResolvedValue(null);
 
-      await deleteReview(req, res);
+      await deleteReview(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "Review not found" });
-    });
-
-    it("should return 400 if reviewId is not provided", async () => {
-      req.params.reviewId = undefined;
-
-      await deleteReview(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Review ID is required",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Review not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.params.reviewId = "review123";
       mockDeleteReviewById.mockRejectedValue(new Error("Delete failed"));
 
-      await deleteReview(req, res);
+      await deleteReview(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Delete failed" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });

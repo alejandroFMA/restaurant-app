@@ -7,9 +7,8 @@ import {
   updateRestaurantById,
   deleteRestaurantById,
 } from "../repository/restaurants.repository.js";
-import { isValidLatLng } from "../utils/checkUserFields.js";
 
-const createRestaurant = async (req, res) => {
+const createRestaurant = async (req, res, next) => {
   try {
     const {
       name,
@@ -21,25 +20,6 @@ const createRestaurant = async (req, res) => {
       operating_hours,
       photograph,
     } = req.body;
-
-    if (
-      !name ||
-      !neighborhood ||
-      !address ||
-      !latlng ||
-      !image ||
-      !cuisine_type ||
-      !operating_hours ||
-      !photograph
-    ) {
-      return res
-        .status(400)
-        .json({ error: "All restaurant fields are required" });
-    }
-
-    if (!isValidLatLng(latlng)) {
-      return res.status(400).json({ error: "Invalid latitude or longitude" });
-    }
 
     const savedRestaurant = await createRestaurantRepository({
       name,
@@ -53,96 +33,90 @@ const createRestaurant = async (req, res) => {
     });
     res.status(201).json(savedRestaurant);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getRestaurantById = async (req, res) => {
-  const restaurantId = req.params.id;
+const getRestaurantById = async (req, res, next) => {
   try {
-    if (!restaurantId) {
-      return res.status(400).json({ error: "Restaurant ID is required" });
-    }
+    const restaurantId = req.params.id;
     const restaurant = await fetchRestaurantById(restaurantId);
     if (!restaurant) {
-      return res.status(404).json({ error: "Restaurant not found" });
+      const error = new Error("Restaurant not found");
+      error.statusCode = 404;
+      return next(error);
     }
 
     res.status(200).json(restaurant);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getAllRestaurants = async (req, res) => {
+const getAllRestaurants = async (req, res, next) => {
   try {
     const restaurants = await fetchAllRestaurants();
     res.status(200).json(restaurants);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getRestaurantByName = async (req, res) => {
-  const name = req.params.name;
+const getRestaurantByName = async (req, res, next) => {
   try {
-    if (!name) {
-      return res.status(400).json({ error: "Restaurant name is required" });
-    }
+    const name = req.params.name;
     const restaurant = await fetchRestaurantByName(name);
     if (!restaurant) {
-      return res.status(404).json({ error: "Restaurant not found" });
+      const error = new Error("Restaurant not found");
+      error.statusCode = 404;
+      return next(error);
     }
     res.status(200).json(restaurant);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error fetching restaurant: " + error.message });
+    next(error);
   }
 };
 
-const getTopRestaurants = async (req, res) => {
+const getTopRestaurants = async (req, res, next) => {
   try {
     const restaurants = await fetchTopRestaurants();
     res.status(200).json(restaurants);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const updateRestaurant = async (req, res) => {
-  const restaurantId = req.params.id;
-  const updateData = req.body;
+const updateRestaurant = async (req, res, next) => {
   try {
-    if (!restaurantId) {
-      return res.status(400).json({ error: "Restaurant ID is required" });
-    }
+    const restaurantId = req.params.id;
+    const updateData = req.body;
     const updatedRestaurant = await updateRestaurantById(
       restaurantId,
       updateData
     );
     if (!updatedRestaurant) {
-      return res.status(404).json({ error: "Restaurant not found" });
+      const error = new Error("Restaurant not found");
+      error.statusCode = 404;
+      return next(error);
     }
     res.status(200).json(updatedRestaurant);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const deleteRestaurant = async (req, res) => {
-  const restaurantId = req.params.id;
+const deleteRestaurant = async (req, res, next) => {
   try {
-    if (!restaurantId) {
-      return res.status(400).json({ error: "Restaurant ID is required" });
-    }
+    const restaurantId = req.params.id;
     const deletedRestaurant = await deleteRestaurantById(restaurantId);
     if (!deletedRestaurant) {
-      return res.status(404).json({ error: "Restaurant not found" });
+      const error = new Error("Restaurant not found");
+      error.statusCode = 404;
+      return next(error);
     }
     res.status(200).json({ message: "Restaurant deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 

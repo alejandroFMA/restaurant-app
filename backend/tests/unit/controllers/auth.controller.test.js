@@ -6,8 +6,6 @@ const mockFetchUserByEmail = jest.fn();
 const mockFetchUserByUsername = jest.fn();
 const mockHashPassword = jest.fn();
 const mockComparePassword = jest.fn();
-const mockIsValidEmail = jest.fn();
-const mockIsPasswordValid = jest.fn();
 
 jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
   createUser: mockCreateUser,
@@ -20,17 +18,12 @@ jest.unstable_mockModule("../../../utils/encryptPassword.js", () => ({
   comparePassword: mockComparePassword,
 }));
 
-jest.unstable_mockModule("../../../utils/checkUserFields.js", () => ({
-  isValidEmail: mockIsValidEmail,
-  isPasswordValid: mockIsPasswordValid,
-}));
-
 const { register, login } = await import(
   "../../../controllers/auth.controller.js"
 );
 
 describe("Auth Controller", () => {
-  let req, res;
+  let req, res, next;
 
   const validUserData = {
     username: "newuser",
@@ -64,8 +57,6 @@ describe("Auth Controller", () => {
   };
 
   const setupSuccessfulRegistration = () => {
-    mockIsValidEmail.mockReturnValue(true);
-    mockIsPasswordValid.mockReturnValue(true);
     mockFetchUserByUsername.mockResolvedValue(null);
     mockFetchUserByEmail.mockResolvedValue(null);
     mockHashPassword.mockResolvedValue("hashed_password");
@@ -78,6 +69,7 @@ describe("Auth Controller", () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
     };
+    next = jest.fn();
     jest.clearAllMocks();
   });
 
@@ -86,14 +78,8 @@ describe("Auth Controller", () => {
       req.body = validUserData;
       setupSuccessfulRegistration();
 
-      await register(req, res);
+      await register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: "User registered successfully",
-        })
-      );
       expect(mockFetchUserByUsername).toHaveBeenCalledWith("newuser");
       expect(mockFetchUserByEmail).toHaveBeenCalledWith("user@example.com");
       expect(mockHashPassword).toHaveBeenCalledWith("SecurePass123!");
@@ -104,100 +90,59 @@ describe("Auth Controller", () => {
         first_name: "John",
         last_name: "Doe",
       });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User registered successfully",
+        })
+      );
       expect(res.json.mock.calls[0][0].user.password).toBeUndefined();
-    });
-
-    it.each([
-      ["username"],
-      ["email"],
-      ["password"],
-      ["first_name"],
-      ["last_name"],
-    ])("should reject registration when %s is missing", async (field) => {
-      req.body = { ...validUserData };
-      delete req.body[field];
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Username, email, and password are required",
-      });
-    });
-
-    it("should reject invalid email format", async () => {
-      req.body = { ...validUserData, email: "invalid-email" };
-      mockIsValidEmail.mockReturnValue(false);
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid email format",
-      });
-    });
-
-    it("should reject weak password", async () => {
-      req.body = { ...validUserData, password: "weak" };
-      mockIsValidEmail.mockReturnValue(true);
-      mockIsPasswordValid.mockReturnValue(false);
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error:
-          "Password must be at least 8 characters long and include a number and a special character",
-      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should reject duplicate username", async () => {
       req.body = validUserData;
-      mockIsValidEmail.mockReturnValue(true);
-      mockIsPasswordValid.mockReturnValue(true);
       mockFetchUserByUsername.mockResolvedValue({ username: "existinguser" });
       mockFetchUserByEmail.mockResolvedValue(null);
 
-      await register(req, res);
+      await register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Username or email already exists",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Username or email already exists",
+          statusCode: 409,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should reject duplicate email", async () => {
       req.body = validUserData;
-      mockIsValidEmail.mockReturnValue(true);
-      mockIsPasswordValid.mockReturnValue(true);
       mockFetchUserByUsername.mockResolvedValue(null);
       mockFetchUserByEmail.mockResolvedValue({ email: "existing@example.com" });
 
-      await register(req, res);
+      await register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Username or email already exists",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Username or email already exists",
+          statusCode: 409,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.body = validUserData;
-      mockIsValidEmail.mockReturnValue(true);
-      mockIsPasswordValid.mockReturnValue(true);
       mockFetchUserByUsername.mockResolvedValue(null);
       mockFetchUserByEmail.mockResolvedValue(null);
       mockHashPassword.mockResolvedValue("hashed_password");
       mockCreateUser.mockRejectedValue(new Error("Database error"));
 
-      await register(req, res);
+      await register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: expect.stringContaining("Error registering user"),
-        })
-      );
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -225,7 +170,7 @@ describe("Auth Controller", () => {
       req.body = validLoginData;
       setupSuccessfulLogin();
 
-      await login(req, res);
+      await login(req, res, next);
 
       expect(mockFetchUserByEmail).toHaveBeenCalledWith("user@example.com");
       expect(mockComparePassword).toHaveBeenCalledWith(
@@ -241,42 +186,22 @@ describe("Auth Controller", () => {
       );
       const response = res.json.mock.calls[0][0];
       expect(response.user.password).toBeUndefined();
-    });
-
-    it("should reject login when email is missing", async () => {
-      req.body = { ...validLoginData };
-      delete req.body.email;
-
-      await login(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Email and password are required",
-      });
-    });
-
-    it("should reject login when password is missing", async () => {
-      req.body = { ...validLoginData };
-      delete req.body.password;
-
-      await login(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Email and password are required",
-      });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should reject login when user does not exist", async () => {
       req.body = validLoginData;
       mockFetchUserByEmail.mockResolvedValue(null);
 
-      await login(req, res);
+      await login(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid email or password",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Invalid email or password",
+          statusCode: 401,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should reject login when password does not match", async () => {
@@ -284,26 +209,25 @@ describe("Auth Controller", () => {
       mockFetchUserByEmail.mockResolvedValue(mockUser);
       mockComparePassword.mockResolvedValue(false);
 
-      await login(req, res);
+      await login(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid email or password",
-      });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Invalid email or password",
+          statusCode: 401,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.body = validLoginData;
       mockFetchUserByEmail.mockRejectedValue(new Error("Database error"));
 
-      await login(req, res);
+      await login(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: expect.stringContaining("Error logging in"),
-        })
-      );
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });

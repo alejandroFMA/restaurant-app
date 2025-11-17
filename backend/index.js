@@ -4,6 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import connectDB from "./config/database.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 import restaurantsAPIRoute from "./routes/restaurants.routes.js";
 import usersAPIRoute from "./routes/users.routes.js";
@@ -37,6 +38,8 @@ app.use("/api/restaurants", restaurantsAPIRoute);
 app.use("/api/users", usersAPIRoute);
 app.use("/api/auth", authAPIRoute);
 app.use("/api/reviews", reviewsAPIRoute);
+
+app.use(errorHandler);
 
 const start = async () => {
   try {

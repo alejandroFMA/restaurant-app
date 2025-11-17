@@ -8,88 +8,107 @@ import {
   deleteUserById,
 } from "../repository/users.repository.js";
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    if (!userId) return res.status(400).json({ error: "User ID is required" });
     const user = await fetchUserById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getUserByEmail = async (req, res) => {
+const getUserByEmail = async (req, res, next) => {
   const email = req.params.email;
   try {
     const user = await fetchUserByEmail(email);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
   try {
     const users = await fetchAllUsers();
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getUserByUsername = async (req, res) => {
+const getUserByUsername = async (req, res, next) => {
   const username = req.params.username;
   try {
     const user = await fetchUserByUsername(username);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
 const userWhiteList = ["first_name", "last_name", "username"];
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    if (!userId) return res.status(400).json({ error: "User ID is required" });
-
     const filteredData = Object.fromEntries(
       Object.entries(req.body).filter(([key]) => userWhiteList.includes(key))
     );
     const user = await updateUserById(userId, filteredData);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    if (!userId) return res.status(400).json({ error: "User ID is required" });
     const user = await deleteUserById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getFavouriteRestaurants = async (req, res) => {
+const getFavouriteRestaurants = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    if (!userId) return res.status(400).json({ error: "User ID is required" });
     const user = await fetchFavouriteRestaurants(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
     res.status(200).json(user.favourite_restaurants);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 

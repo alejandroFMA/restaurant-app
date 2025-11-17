@@ -58,36 +58,28 @@ describe("Users Controller", () => {
       req.params.id = "user123";
       mockFetchUserById.mockResolvedValue(mockUser);
 
-      await getUserById(req, res);
+      await getUserById(req, res, next);
 
       expect(mockFetchUserById).toHaveBeenCalledWith("user123");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUser);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if user does not exist", async () => {
       req.params.id = "nonexistentuser";
       mockFetchUserById.mockResolvedValue(null);
 
-      await getUserById(req, res);
+      await getUserById(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
-
-    it.each([null, undefined, ""])(
-      "should return 400 if userId is %s",
-      async (userId) => {
-        req.params.id = userId;
-
-        await getUserById(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-          error: "User ID is required",
-        });
-      }
-    );
 
     it("should handle database errors", async () => {
       req.params.id = "user123";
@@ -95,12 +87,10 @@ describe("Users Controller", () => {
         new Error("Database connection failed")
       );
 
-      await getUserById(req, res);
+      await getUserById(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Database connection failed",
-      });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -112,27 +102,29 @@ describe("Users Controller", () => {
       ];
       mockFetchAllUsers.mockResolvedValue(mockUsers);
 
-      await getAllUsers(req, res);
+      await getAllUsers(req, res, next);
 
       expect(mockFetchAllUsers).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(mockUsers);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return empty array if no users exist", async () => {
       mockFetchAllUsers.mockResolvedValue([]);
 
-      await getAllUsers(req, res);
+      await getAllUsers(req, res, next);
 
       expect(res.json).toHaveBeenCalledWith([]);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       mockFetchAllUsers.mockRejectedValue(new Error("Database error"));
 
-      await getAllUsers(req, res);
+      await getAllUsers(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -147,30 +139,37 @@ describe("Users Controller", () => {
       req.params.email = "user@example.com";
       mockFetchUserByEmail.mockResolvedValue(mockUser);
 
-      await getUserByEmail(req, res);
+      await getUserByEmail(req, res, next);
 
       expect(mockFetchUserByEmail).toHaveBeenCalledWith("user@example.com");
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUser);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if email does not exist", async () => {
       req.params.email = "nonexistent@example.com";
       mockFetchUserByEmail.mockResolvedValue(null);
 
-      await getUserByEmail(req, res);
+      await getUserByEmail(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.params.email = "user@example.com";
       mockFetchUserByEmail.mockRejectedValue(new Error("Database error"));
 
-      await getUserByEmail(req, res);
+      await getUserByEmail(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -185,30 +184,37 @@ describe("Users Controller", () => {
       req.params.username = "testuser";
       mockFetchUserByUsername.mockResolvedValue(mockUser);
 
-      await getUserByUsername(req, res);
+      await getUserByUsername(req, res, next);
 
       expect(mockFetchUserByUsername).toHaveBeenCalledWith("testuser");
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUser);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if username does not exist", async () => {
       req.params.username = "nonexistentuser";
       mockFetchUserByUsername.mockResolvedValue(null);
 
-      await getUserByUsername(req, res);
+      await getUserByUsername(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {
       req.params.username = "testuser";
       mockFetchUserByUsername.mockRejectedValue(new Error("Database error"));
 
-      await getUserByUsername(req, res);
+      await getUserByUsername(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -229,10 +235,12 @@ describe("Users Controller", () => {
       req.body = updateData;
       mockUpdateUserById.mockResolvedValue(updatedUser);
 
-      await updateUser(req, res);
+      await updateUser(req, res, next);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith("user123", updateData);
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(updatedUser);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should filter out non-whitelisted fields", async () => {
@@ -251,9 +259,10 @@ describe("Users Controller", () => {
         first_name: "Jane",
       });
 
-      await updateUser(req, res);
+      await updateUser(req, res, next);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith("user123", filteredData);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if user does not exist", async () => {
@@ -261,36 +270,26 @@ describe("Users Controller", () => {
       req.body = { first_name: "Jane" };
       mockUpdateUserById.mockResolvedValue(null);
 
-      await updateUser(req, res);
+      await updateUser(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
-
-    it.each([null, undefined, ""])(
-      "should return 400 if userId is %s",
-      async (userId) => {
-        req.params.id = userId;
-        req.body = { first_name: "Jane" };
-
-        await updateUser(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-          error: "User ID is required",
-        });
-      }
-    );
 
     it("should handle database errors", async () => {
       req.params.id = "user123";
       req.body = { first_name: "Jane" };
       mockUpdateUserById.mockRejectedValue(new Error("Update failed"));
 
-      await updateUser(req, res);
+      await updateUser(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Update failed" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -302,46 +301,39 @@ describe("Users Controller", () => {
         username: "testuser",
       });
 
-      await deleteUser(req, res);
+      await deleteUser(req, res, next);
 
       expect(mockDeleteUserById).toHaveBeenCalledWith("user123");
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: "User deleted successfully",
       });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if user not found", async () => {
       req.params.id = "nonexistentuser";
       mockDeleteUserById.mockResolvedValue(null);
 
-      await deleteUser(req, res);
+      await deleteUser(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
-
-    it.each([null, undefined, ""])(
-      "should return 400 if userId is %s",
-      async (userId) => {
-        req.params.id = userId;
-
-        await deleteUser(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-          error: "User ID is required",
-        });
-      }
-    );
 
     it("should handle database errors", async () => {
       req.params.id = "user123";
       mockDeleteUserById.mockRejectedValue(new Error("Delete failed"));
 
-      await deleteUser(req, res);
+      await deleteUser(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Delete failed" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -359,10 +351,12 @@ describe("Users Controller", () => {
       req.params.id = "user123";
       mockFetchFavouriteRestaurants.mockResolvedValue(mockUser);
 
-      await getFavouriteRestaurants(req, res);
+      await getFavouriteRestaurants(req, res, next);
 
       expect(mockFetchFavouriteRestaurants).toHaveBeenCalledWith("user123");
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockFavourites);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return empty array if no favourites", async () => {
@@ -374,9 +368,11 @@ describe("Users Controller", () => {
       req.params.id = "user123";
       mockFetchFavouriteRestaurants.mockResolvedValue(mockUser);
 
-      await getFavouriteRestaurants(req, res);
+      await getFavouriteRestaurants(req, res, next);
 
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith([]);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return undefined if favourites is undefined", async () => {
@@ -387,34 +383,27 @@ describe("Users Controller", () => {
       req.params.id = "user123";
       mockFetchFavouriteRestaurants.mockResolvedValue(mockUser);
 
-      await getFavouriteRestaurants(req, res);
+      await getFavouriteRestaurants(req, res, next);
 
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(undefined);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should return 404 if user does not exist", async () => {
       req.params.id = "nonexistentuser";
       mockFetchFavouriteRestaurants.mockResolvedValue(null);
 
-      await getFavouriteRestaurants(req, res);
+      await getFavouriteRestaurants(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "User not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
     });
-
-    it.each([null, undefined, ""])(
-      "should return 400 if userId is %s",
-      async (userId) => {
-        req.params.id = userId;
-
-        await getFavouriteRestaurants(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-          error: "User ID is required",
-        });
-      }
-    );
 
     it("should handle database errors", async () => {
       req.params.id = "user123";
@@ -422,10 +411,10 @@ describe("Users Controller", () => {
         new Error("Database error")
       );
 
-      await getFavouriteRestaurants(req, res);
+      await getFavouriteRestaurants(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });
