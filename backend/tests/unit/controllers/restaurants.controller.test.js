@@ -1,37 +1,55 @@
 import { jest } from "@jest/globals";
 
-const mockRestaurantFindById = jest.fn();
-const mockRestaurantFind = jest.fn();
-const mockRestaurantFindOne = jest.fn();
-const mockRestaurantFindByIdAndUpdate = jest.fn();
-const mockRestaurantFindByIdAndDelete = jest.fn();
-const mockRestaurantCreate = jest.fn();
+const mockCreateRestaurant = jest.fn();
+const mockFetchRestaurantById = jest.fn();
+const mockFetchAllRestaurants = jest.fn();
+const mockFetchRestaurantByName = jest.fn();
+const mockFetchTopRestaurants = jest.fn();
+const mockUpdateRestaurantById = jest.fn();
+const mockDeleteRestaurantById = jest.fn();
+const mockIsValidLatLng = jest.fn();
 
-const mockRestaurantModel = {
-  findById: (id) => mockRestaurantFindById(id),
-  find: () => mockRestaurantFind(),
-  findOne: (query) => mockRestaurantFindOne(query),
-  findByIdAndUpdate: (id, data, options) =>
-    mockRestaurantFindByIdAndUpdate(id, data, options),
-  findByIdAndDelete: (id) => mockRestaurantFindByIdAndDelete(id),
-  create: (data) => mockRestaurantCreate(data),
-};
+jest.unstable_mockModule(
+  "../../../repository/restaurants.repository.js",
+  () => ({
+    createRestaurant: mockCreateRestaurant,
+    fetchRestaurantById: mockFetchRestaurantById,
+    fetchAllRestaurants: mockFetchAllRestaurants,
+    fetchRestaurantByName: mockFetchRestaurantByName,
+    fetchTopRestaurants: mockFetchTopRestaurants,
+    updateRestaurantById: mockUpdateRestaurantById,
+    deleteRestaurantById: mockDeleteRestaurantById,
+  })
+);
 
-jest.unstable_mockModule("../../../models/Restaurant.model.js", () => ({
-  default: mockRestaurantModel,
+jest.unstable_mockModule("../../../utils/checkUserFields.js", () => ({
+  isValidLatLng: mockIsValidLatLng,
 }));
 
 const {
   createRestaurant,
-  fetchRestaurantById,
-  fetchAllRestaurants,
-  fetchRestaurantByName,
-  fetchTopRestaurants,
+  getRestaurantById,
+  getAllRestaurants,
+  getRestaurantByName,
+  getTopRestaurants,
   updateRestaurant,
   deleteRestaurant,
 } = await import("../../../controllers/restaurants.controller.js");
 
 describe("Restaurants Controller", () => {
+  let req, res, next;
+
+  beforeEach(() => {
+    req = { body: {}, params: {}, query: {} };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    next = jest.fn();
+    jest.clearAllMocks();
+    mockIsValidLatLng.mockReturnValue(true);
+  });
+
   const validRestaurantData = {
     name: "Test Restaurant",
     neighborhood: "Downtown",
@@ -43,19 +61,24 @@ describe("Restaurants Controller", () => {
     photograph: "test.jpg",
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe("createRestaurant", () => {
     it("should create restaurant with all required fields", async () => {
-      const mockCreated = { _id: "rest123", ...validRestaurantData };
-      mockRestaurantCreate.mockResolvedValue(mockCreated);
+      const mockCreated = {
+        _id: "rest123",
+        id: "rest123",
+        ...validRestaurantData,
+      };
+      req.body = validRestaurantData;
+      mockCreateRestaurant.mockResolvedValue(mockCreated);
 
-      const result = await createRestaurant(validRestaurantData);
+      await createRestaurant(req, res);
 
-      expect(result).toEqual(mockCreated);
-      expect(mockRestaurantCreate).toHaveBeenCalled();
+      expect(mockIsValidLatLng).toHaveBeenCalledWith(
+        validRestaurantData.latlng
+      );
+      expect(mockCreateRestaurant).toHaveBeenCalledWith(validRestaurantData);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(mockCreated);
     });
 
     it.each([
@@ -67,179 +90,218 @@ describe("Restaurants Controller", () => {
       ["cuisine_type"],
       ["operating_hours"],
       ["photograph"],
-    ])("should throw error when %s is missing", async (field) => {
+    ])("should return 400 when %s is missing", async (field) => {
       const invalidData = { ...validRestaurantData };
       delete invalidData[field];
+      req.body = invalidData;
 
-      await expect(createRestaurant(invalidData)).rejects.toThrow(
-        "All restaurant fields are required"
-      );
+      await createRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "All restaurant fields are required",
+      });
+    });
+
+    it("should return 400 when latlng is invalid", async () => {
+      req.body = { ...validRestaurantData };
+      mockIsValidLatLng.mockReturnValue(false);
+
+      await createRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Invalid latitude or longitude",
+      });
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantCreate.mockRejectedValue(new Error("Database error"));
+      req.body = validRestaurantData;
+      mockCreateRestaurant.mockRejectedValue(new Error("Database error"));
 
-      await expect(createRestaurant(validRestaurantData)).rejects.toThrow(
-        "Error creating restaurant"
-      );
+      await createRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
-  describe("fetchRestaurantById", () => {
+  describe("getRestaurantById", () => {
     it("should return restaurant when ID is valid", async () => {
       const mockRestaurant = {
         _id: "rest123",
+        id: "rest123",
         name: "Test Restaurant",
         neighborhood: "Downtown",
       };
-      mockRestaurantFindById.mockResolvedValue(mockRestaurant);
+      req.params.id = "rest123";
+      mockFetchRestaurantById.mockResolvedValue(mockRestaurant);
 
-      const result = await fetchRestaurantById("rest123");
+      await getRestaurantById(req, res);
 
-      expect(mockRestaurantFindById).toHaveBeenCalledWith("rest123");
-      expect(result).toEqual(mockRestaurant);
+      expect(mockFetchRestaurantById).toHaveBeenCalledWith("rest123");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockRestaurant);
     });
 
-    it("should throw error if restaurant not found", async () => {
-      mockRestaurantFindById.mockResolvedValue(null);
+    it("should return 404 if restaurant not found", async () => {
+      req.params.id = "nonexistent";
+      mockFetchRestaurantById.mockResolvedValue(null);
 
-      await expect(fetchRestaurantById("nonexistent")).rejects.toThrow(
-        "Restaurant not found"
-      );
+      await getRestaurantById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Restaurant not found" });
     });
 
-    it("should throw error if ID is not provided", async () => {
-      await expect(fetchRestaurantById(null)).rejects.toThrow(
-        "Restaurant ID is required"
-      );
+    it("should return 400 if ID is not provided", async () => {
+      req.params.id = undefined;
+
+      await getRestaurantById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Restaurant ID is required",
+      });
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantFindById.mockRejectedValue(new Error("Database error"));
+      req.params.id = "rest123";
+      mockFetchRestaurantById.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchRestaurantById("rest123")).rejects.toThrow(
-        "Error fetching restaurant"
-      );
+      await getRestaurantById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
-  describe("fetchAllRestaurants", () => {
+  describe("getAllRestaurants", () => {
     it("should return array of restaurants", async () => {
       const mockRestaurants = [
-        { _id: "rest1", name: "Restaurant 1" },
-        { _id: "rest2", name: "Restaurant 2" },
+        { _id: "rest1", id: "rest1", name: "Restaurant 1" },
+        { _id: "rest2", id: "rest2", name: "Restaurant 2" },
       ];
-      mockRestaurantFind.mockResolvedValue(mockRestaurants);
+      mockFetchAllRestaurants.mockResolvedValue(mockRestaurants);
 
-      const result = await fetchAllRestaurants();
+      await getAllRestaurants(req, res);
 
-      expect(mockRestaurantFind).toHaveBeenCalled();
-      expect(result).toEqual(mockRestaurants);
+      expect(mockFetchAllRestaurants).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockRestaurants);
     });
 
     it("should return empty array if no restaurants exist", async () => {
-      mockRestaurantFind.mockResolvedValue([]);
+      mockFetchAllRestaurants.mockResolvedValue([]);
 
-      const result = await fetchAllRestaurants();
+      await getAllRestaurants(req, res);
 
-      expect(result).toEqual([]);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith([]);
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantFind.mockRejectedValue(new Error("Database error"));
+      mockFetchAllRestaurants.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchAllRestaurants()).rejects.toThrow(
-        "Error fetching restaurants"
-      );
+      await getAllRestaurants(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
-  describe("fetchRestaurantByName", () => {
+  describe("getRestaurantByName", () => {
     it("should return restaurant when name exists", async () => {
       const mockRestaurant = {
         _id: "rest123",
+        id: "rest123",
         name: "Test Restaurant",
         neighborhood: "Downtown",
       };
-      mockRestaurantFindOne.mockResolvedValue(mockRestaurant);
+      req.params.name = "Test Restaurant";
+      mockFetchRestaurantByName.mockResolvedValue(mockRestaurant);
 
-      const result = await fetchRestaurantByName("Test Restaurant");
+      await getRestaurantByName(req, res);
 
-      expect(mockRestaurantFindOne).toHaveBeenCalledWith({
-        name: "Test Restaurant",
+      expect(mockFetchRestaurantByName).toHaveBeenCalledWith("Test Restaurant");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockRestaurant);
+    });
+
+    it("should return 404 if restaurant not found", async () => {
+      req.params.name = "nonexistent";
+      mockFetchRestaurantByName.mockResolvedValue(null);
+
+      await getRestaurantByName(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Restaurant not found",
       });
-      expect(result).toEqual(mockRestaurant);
     });
 
-    it("should throw error if restaurant not found", async () => {
-      mockRestaurantFindOne.mockResolvedValue(null);
+    it("should return 400 if name is not provided", async () => {
+      req.params.name = undefined;
 
-      await expect(fetchRestaurantByName("Nonexistent")).rejects.toThrow(
-        "Restaurant not found"
-      );
-    });
+      await getRestaurantByName(req, res);
 
-    it("should throw error if name is not provided", async () => {
-      await expect(fetchRestaurantByName(null)).rejects.toThrow(
-        "Restaurant name is required"
-      );
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Restaurant name is required",
+      });
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantFindOne.mockRejectedValue(new Error("Database error"));
+      req.params.name = "Test Restaurant";
+      mockFetchRestaurantByName.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchRestaurantByName("Test")).rejects.toThrow(
-        "Error fetching restaurant"
-      );
+      await getRestaurantByName(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Error fetching restaurant: Database error",
+      });
     });
   });
 
-  describe("fechtTopRestaurants", () => {
-    const setupTopRestaurantsQuery = (mockRestaurants) => {
-      mockRestaurantFind.mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          limit: jest.fn().mockResolvedValue(mockRestaurants),
-        }),
-      });
-    };
-
-    it("should return top 5 restaurants sorted by rating", async () => {
+  describe("getTopRestaurants", () => {
+    it("should return top restaurants sorted by rating", async () => {
       const mockTopRestaurants = [
-        { _id: "rest1", name: "Best", average_rating: 5 },
-        { _id: "rest2", name: "Good", average_rating: 4.5 },
-        { _id: "rest3", name: "Nice", average_rating: 4 },
-        { _id: "rest4", name: "Ok", average_rating: 3.5 },
-        { _id: "rest5", name: "Fair", average_rating: 3 },
+        { _id: "rest1", id: "rest1", name: "Best", average_rating: 5 },
+        { _id: "rest2", id: "rest2", name: "Good", average_rating: 4.5 },
+        { _id: "rest3", id: "rest3", name: "Nice", average_rating: 4 },
+        { _id: "rest4", id: "rest4", name: "Ok", average_rating: 3.5 },
+        { _id: "rest5", id: "rest5", name: "Fair", average_rating: 3 },
       ];
-      setupTopRestaurantsQuery(mockTopRestaurants);
+      mockFetchTopRestaurants.mockResolvedValue(mockTopRestaurants);
 
-      const result = await fetchTopRestaurants();
+      await getTopRestaurants(req, res);
 
-      expect(result).toEqual(mockTopRestaurants);
+      expect(mockFetchTopRestaurants).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockTopRestaurants);
     });
 
-    it("should return fewer than 5 if not enough restaurants", async () => {
+    it("should return fewer restaurants if not enough exist", async () => {
       const mockTopRestaurants = [
-        { _id: "rest1", name: "Best", average_rating: 5 },
-        { _id: "rest2", name: "Good", average_rating: 4.5 },
+        { _id: "rest1", id: "rest1", name: "Best", average_rating: 5 },
+        { _id: "rest2", id: "rest2", name: "Good", average_rating: 4.5 },
       ];
-      setupTopRestaurantsQuery(mockTopRestaurants);
+      mockFetchTopRestaurants.mockResolvedValue(mockTopRestaurants);
 
-      const result = await fetchTopRestaurants();
+      await getTopRestaurants(req, res);
 
-      expect(result.length).toBe(2);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockTopRestaurants);
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantFind.mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          limit: jest.fn().mockRejectedValue(new Error("Database error")),
-        }),
-      });
+      mockFetchTopRestaurants.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchTopRestaurants()).rejects.toThrow(
-        "Error fetching top restaurants"
-      );
+      await getTopRestaurants(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
@@ -248,82 +310,107 @@ describe("Restaurants Controller", () => {
       const updateData = { name: "Updated Name", cuisine_type: "French" };
       const updatedRestaurant = {
         _id: "rest123",
+        id: "rest123",
         ...updateData,
         neighborhood: "Downtown",
       };
-      mockRestaurantFindByIdAndUpdate.mockResolvedValue(updatedRestaurant);
+      req.params.id = "rest123";
+      req.body = updateData;
+      mockUpdateRestaurantById.mockResolvedValue(updatedRestaurant);
 
-      const result = await updateRestaurant("rest123", updateData);
+      await updateRestaurant(req, res);
 
-      expect(mockRestaurantFindByIdAndUpdate).toHaveBeenCalledWith(
+      expect(mockUpdateRestaurantById).toHaveBeenCalledWith(
         "rest123",
-        updateData,
-        { new: true }
+        updateData
       );
-      expect(result).toEqual(updatedRestaurant);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(updatedRestaurant);
     });
 
-    it("should throw error if restaurant not found", async () => {
-      mockRestaurantFindByIdAndUpdate.mockResolvedValue(null);
+    it("should return 404 if restaurant not found", async () => {
+      req.params.id = "nonexistent";
+      req.body = { name: "Updated Name" };
+      mockUpdateRestaurantById.mockResolvedValue(null);
 
-      await expect(
-        updateRestaurant("nonexistent", { name: "New Name" })
-      ).rejects.toThrow("Restaurant not found");
+      await updateRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Restaurant not found" });
     });
 
-    it("should throw error if ID is not provided", async () => {
-      await expect(updateRestaurant(null, {})).rejects.toThrow(
-        "Restaurant ID is required"
-      );
+    it("should return 400 if ID is not provided", async () => {
+      req.params.id = undefined;
+      req.body = { name: "Updated Name" };
+
+      await updateRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Restaurant ID is required",
+      });
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantFindByIdAndUpdate.mockRejectedValue(
-        new Error("Update failed")
-      );
+      req.params.id = "rest123";
+      req.body = { name: "Updated Name" };
+      mockUpdateRestaurantById.mockRejectedValue(new Error("Update failed"));
 
-      await expect(
-        updateRestaurant("rest123", { name: "New Name" })
-      ).rejects.toThrow("Error updating restaurant");
+      await updateRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Update failed" });
     });
   });
 
   describe("deleteRestaurant", () => {
-    it("should delete restaurant and return it", async () => {
+    it("should delete restaurant and return success message", async () => {
       const deletedRestaurant = {
         _id: "rest123",
+        id: "rest123",
         name: "Deleted Restaurant",
       };
-      mockRestaurantFindByIdAndDelete.mockResolvedValue(deletedRestaurant);
+      req.params.id = "rest123";
+      mockDeleteRestaurantById.mockResolvedValue(deletedRestaurant);
 
-      const result = await deleteRestaurant("rest123");
+      await deleteRestaurant(req, res);
 
-      expect(mockRestaurantFindByIdAndDelete).toHaveBeenCalledWith("rest123");
-      expect(result).toEqual(deletedRestaurant);
+      expect(mockDeleteRestaurantById).toHaveBeenCalledWith("rest123");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Restaurant deleted successfully",
+      });
     });
 
-    it("should throw error if restaurant not found", async () => {
-      mockRestaurantFindByIdAndDelete.mockResolvedValue(null);
+    it("should return 404 if restaurant not found", async () => {
+      req.params.id = "nonexistent";
+      mockDeleteRestaurantById.mockResolvedValue(null);
 
-      await expect(deleteRestaurant("nonexistent")).rejects.toThrow(
-        "Restaurant not found"
-      );
+      await deleteRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Restaurant not found" });
     });
 
-    it("should throw error if ID is not provided", async () => {
-      await expect(deleteRestaurant(null)).rejects.toThrow(
-        "Restaurant ID is required"
-      );
+    it("should return 400 if ID is not provided", async () => {
+      req.params.id = undefined;
+
+      await deleteRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Restaurant ID is required",
+      });
     });
 
     it("should handle database errors", async () => {
-      mockRestaurantFindByIdAndDelete.mockRejectedValue(
-        new Error("Delete failed")
-      );
+      req.params.id = "rest123";
+      mockDeleteRestaurantById.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(deleteRestaurant("rest123")).rejects.toThrow(
-        "Error deleting restaurant"
-      );
+      await deleteRestaurant(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Delete failed" });
     });
   });
 });

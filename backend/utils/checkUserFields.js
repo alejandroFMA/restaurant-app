@@ -12,4 +12,12 @@ const isPasswordValid = (password) => {
   const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/;
   return passwordRegex.test(password);
 };
-export { isValidEmail, isPasswordValid };
+
+const isValidLatLng = (latlng) => {
+  if (!latlng) return false;
+  if (typeof latlng !== "object") return false;
+  if (typeof latlng.lat !== "number" || typeof latlng.lng !== "number")
+    return false;
+  return true;
+};
+export { isValidEmail, isPasswordValid, isValidLatLng };

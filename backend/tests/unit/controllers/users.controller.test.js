@@ -1,37 +1,47 @@
 import { jest } from "@jest/globals";
 
-const mockUserFindById = jest.fn();
-const mockUserFind = jest.fn();
-const mockUserFindOne = jest.fn();
-const mockUserFindByIdAndUpdate = jest.fn();
-const mockUserFindByIdAndDelete = jest.fn();
-const mockPopulate = jest.fn();
+const mockFetchUserById = jest.fn();
+const mockFetchAllUsers = jest.fn();
+const mockFetchUserByEmail = jest.fn();
+const mockFetchUserByUsername = jest.fn();
+const mockUpdateUserById = jest.fn();
+const mockDeleteUserById = jest.fn();
+const mockFetchFavouriteRestaurants = jest.fn();
 
-const mockUserModel = {
-  findById: (id) => mockUserFindById(id),
-  find: () => mockUserFind(),
-  findOne: (query) => mockUserFindOne(query),
-  findByIdAndUpdate: (id, data, options) =>
-    mockUserFindByIdAndUpdate(id, data, options),
-  findByIdAndDelete: (id) => mockUserFindByIdAndDelete(id),
-};
-
-jest.unstable_mockModule("../../../models/User.model.js", () => ({
-  default: mockUserModel,
+jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
+  fetchUserById: mockFetchUserById,
+  fetchAllUsers: mockFetchAllUsers,
+  fetchUserByEmail: mockFetchUserByEmail,
+  fetchUserByUsername: mockFetchUserByUsername,
+  updateUserById: mockUpdateUserById,
+  deleteUserById: mockDeleteUserById,
+  fetchFavouriteRestaurants: mockFetchFavouriteRestaurants,
 }));
 
 const {
-  fetchUserById,
-  fetchAllUsers,
-  fetchUserByEmail,
-  fetchUserByUsername,
-  updateUserById,
-  deleteUserById,
-  fetchFavouriteRestaurants,
+  getUserById,
+  getAllUsers,
+  getUserByEmail,
+  getUserByUsername,
+  updateUser,
+  deleteUser,
+  getFavouriteRestaurants,
 } = await import("../../../controllers/users.controller.js");
 
 describe("Users Controller", () => {
+  let req, res, next;
+
   beforeEach(() => {
+    req = {
+      params: {},
+      body: {},
+      query: {},
+    };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    next = jest.fn();
     jest.clearAllMocks();
   });
 
@@ -39,73 +49,90 @@ describe("Users Controller", () => {
     it("should return user when ID is valid", async () => {
       const mockUser = {
         _id: "user123",
+        id: "user123",
         username: "testuser",
         email: "user@example.com",
         first_name: "John",
         last_name: "Doe",
       };
-      mockUserFindById.mockResolvedValue(mockUser);
+      req.params.id = "user123";
+      mockFetchUserById.mockResolvedValue(mockUser);
 
-      const result = await fetchUserById("user123");
+      await getUserById(req, res);
 
-      expect(mockUserFindById).toHaveBeenCalledWith("user123");
-      expect(result).toEqual(mockUser);
+      expect(mockFetchUserById).toHaveBeenCalledWith("user123");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should return null if user does not exist", async () => {
-      mockUserFindById.mockResolvedValue(null);
+    it("should return 404 if user does not exist", async () => {
+      req.params.id = "nonexistentuser";
+      mockFetchUserById.mockResolvedValue(null);
 
-      const result = await fetchUserById("nonexistentuser");
+      await getUserById(req, res);
 
-      expect(result).toBeNull();
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
     it.each([null, undefined, ""])(
-      "should throw error if userId is %s",
+      "should return 400 if userId is %s",
       async (userId) => {
-        await expect(fetchUserById(userId)).rejects.toThrow(
-          "User ID is required"
-        );
+        req.params.id = userId;
+
+        await getUserById(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: "User ID is required",
+        });
       }
     );
 
     it("should handle database errors", async () => {
-      mockUserFindById.mockRejectedValue(
+      req.params.id = "user123";
+      mockFetchUserById.mockRejectedValue(
         new Error("Database connection failed")
       );
 
-      await expect(fetchUserById("user123")).rejects.toThrow(
-        "Error fetching user"
-      );
+      await getUserById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Database connection failed",
+      });
     });
   });
 
   describe("getAllUsers", () => {
     it("should return array of users", async () => {
       const mockUsers = [
-        { _id: "user1", username: "user1", email: "user1@example.com" },
-        { _id: "user2", username: "user2", email: "user2@example.com" },
+        { _id: "user1", id: "user1", username: "user1" },
+        { _id: "user2", id: "user2", username: "user2" },
       ];
-      mockUserFind.mockResolvedValue(mockUsers);
+      mockFetchAllUsers.mockResolvedValue(mockUsers);
 
-      const result = await fetchAllUsers();
+      await getAllUsers(req, res);
 
-      expect(mockUserFind).toHaveBeenCalled();
-      expect(result).toEqual(mockUsers);
+      expect(mockFetchAllUsers).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(mockUsers);
     });
 
     it("should return empty array if no users exist", async () => {
-      mockUserFind.mockResolvedValue([]);
+      mockFetchAllUsers.mockResolvedValue([]);
 
-      const result = await fetchAllUsers();
+      await getAllUsers(req, res);
 
-      expect(result).toEqual([]);
+      expect(res.json).toHaveBeenCalledWith([]);
     });
 
     it("should handle database errors", async () => {
-      mockUserFind.mockRejectedValue(new Error("Database error"));
+      mockFetchAllUsers.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchAllUsers()).rejects.toThrow("Error fetching users");
+      await getAllUsers(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
@@ -113,33 +140,37 @@ describe("Users Controller", () => {
     it("should return user when email exists", async () => {
       const mockUser = {
         _id: "user123",
+        id: "user123",
         username: "testuser",
         email: "user@example.com",
       };
-      mockUserFindOne.mockResolvedValue(mockUser);
+      req.params.email = "user@example.com";
+      mockFetchUserByEmail.mockResolvedValue(mockUser);
 
-      const result = await fetchUserByEmail("user@example.com");
+      await getUserByEmail(req, res);
 
-      expect(mockUserFindOne).toHaveBeenCalledWith({
-        email: "user@example.com",
-      });
-      expect(result).toEqual(mockUser);
+      expect(mockFetchUserByEmail).toHaveBeenCalledWith("user@example.com");
+      expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should return null if email does not exist", async () => {
-      mockUserFindOne.mockResolvedValue(null);
+    it("should return 404 if email does not exist", async () => {
+      req.params.email = "nonexistent@example.com";
+      mockFetchUserByEmail.mockResolvedValue(null);
 
-      const result = await fetchUserByEmail("nonexistent@example.com");
+      await getUserByEmail(req, res);
 
-      expect(result).toBeNull();
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
     it("should handle database errors", async () => {
-      mockUserFindOne.mockRejectedValue(new Error("Database error"));
+      req.params.email = "user@example.com";
+      mockFetchUserByEmail.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchUserByEmail("user@example.com")).rejects.toThrow(
-        "Error fetching user by email"
-      );
+      await getUserByEmail(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
@@ -147,42 +178,37 @@ describe("Users Controller", () => {
     it("should return user when username exists", async () => {
       const mockUser = {
         _id: "user123",
+        id: "user123",
         username: "testuser",
         email: "user@example.com",
       };
-      mockUserFindOne.mockResolvedValue(mockUser);
+      req.params.username = "testuser";
+      mockFetchUserByUsername.mockResolvedValue(mockUser);
 
-      const result = await fetchUserByUsername("testuser");
+      await getUserByUsername(req, res);
 
-      expect(mockUserFindOne).toHaveBeenCalledWith({
-        username: "testuser",
-      });
-      expect(result).toEqual(mockUser);
+      expect(mockFetchUserByUsername).toHaveBeenCalledWith("testuser");
+      expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should return null if username does not exist", async () => {
-      mockUserFindOne.mockResolvedValue(null);
+    it("should return 404 if username does not exist", async () => {
+      req.params.username = "nonexistentuser";
+      mockFetchUserByUsername.mockResolvedValue(null);
 
-      const result = await fetchUserByUsername("nonexistentuser");
+      await getUserByUsername(req, res);
 
-      expect(result).toBeNull();
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
-
-    it.each([null, undefined])(
-      "should throw error if username is %s",
-      async (username) => {
-        await expect(fetchUserByUsername(username)).rejects.toThrow(
-          "Username is required"
-        );
-      }
-    );
 
     it("should handle database errors", async () => {
-      mockUserFindOne.mockRejectedValue(new Error("Database error"));
+      req.params.username = "testuser";
+      mockFetchUserByUsername.mockRejectedValue(new Error("Database error"));
 
-      await expect(fetchUserByUsername("testuser")).rejects.toThrow(
-        "Error fetching user by username"
-      );
+      await getUserByUsername(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 
@@ -195,19 +221,18 @@ describe("Users Controller", () => {
       };
       const updatedUser = {
         _id: "user123",
+        id: "user123",
         ...updateData,
         email: "user@example.com",
       };
-      mockUserFindByIdAndUpdate.mockResolvedValue(updatedUser);
+      req.params.id = "user123";
+      req.body = updateData;
+      mockUpdateUserById.mockResolvedValue(updatedUser);
 
-      const result = await updateUserById("user123", updateData);
+      await updateUser(req, res);
 
-      expect(mockUserFindByIdAndUpdate).toHaveBeenCalledWith(
-        "user123",
-        updateData,
-        { new: true }
-      );
-      expect(result).toEqual(updatedUser);
+      expect(mockUpdateUserById).toHaveBeenCalledWith("user123", updateData);
+      expect(res.json).toHaveBeenCalledWith(updatedUser);
     });
 
     it("should filter out non-whitelisted fields", async () => {
@@ -217,129 +242,190 @@ describe("Users Controller", () => {
         is_admin: true,
         password: "newpassword",
       };
-      mockUserFindByIdAndUpdate.mockResolvedValue({
+      const filteredData = { first_name: "Jane" };
+      req.params.id = "user123";
+      req.body = updateData;
+      mockUpdateUserById.mockResolvedValue({
         _id: "user123",
+        id: "user123",
         first_name: "Jane",
       });
 
-      await updateUserById("user123", updateData);
+      await updateUser(req, res);
 
-      const callArgs = mockUserFindByIdAndUpdate.mock.calls[0][1];
-      expect(callArgs).toHaveProperty("first_name");
-      expect(callArgs).not.toHaveProperty("email");
-      expect(callArgs).not.toHaveProperty("is_admin");
-      expect(callArgs).not.toHaveProperty("password");
+      expect(mockUpdateUserById).toHaveBeenCalledWith("user123", filteredData);
     });
 
-    it.each([null, undefined])(
-      "should throw error if userId is %s",
+    it("should return 404 if user does not exist", async () => {
+      req.params.id = "nonexistentuser";
+      req.body = { first_name: "Jane" };
+      mockUpdateUserById.mockResolvedValue(null);
+
+      await updateUser(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+    });
+
+    it.each([null, undefined, ""])(
+      "should return 400 if userId is %s",
       async (userId) => {
-        await expect(updateUserById(userId, {})).rejects.toThrow(
-          "User ID is required"
-        );
+        req.params.id = userId;
+        req.body = { first_name: "Jane" };
+
+        await updateUser(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: "User ID is required",
+        });
       }
     );
 
     it("should handle database errors", async () => {
-      mockUserFindByIdAndUpdate.mockRejectedValue(new Error("Update failed"));
+      req.params.id = "user123";
+      req.body = { first_name: "Jane" };
+      mockUpdateUserById.mockRejectedValue(new Error("Update failed"));
 
-      await expect(
-        updateUserById("user123", { first_name: "Jane" })
-      ).rejects.toThrow("Error updating user");
+      await updateUser(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Update failed" });
     });
   });
 
   describe("deleteUser", () => {
-    it("should return true on successful deletion", async () => {
-      mockUserFindByIdAndDelete.mockResolvedValue({
+    it("should return success message on successful deletion", async () => {
+      req.params.id = "user123";
+      mockDeleteUserById.mockResolvedValue({
         _id: "user123",
         username: "testuser",
       });
 
-      const result = await deleteUserById("user123");
+      await deleteUser(req, res);
 
-      expect(mockUserFindByIdAndDelete).toHaveBeenCalledWith("user123");
-      expect(result).toBe(true);
+      expect(mockDeleteUserById).toHaveBeenCalledWith("user123");
+      expect(res.json).toHaveBeenCalledWith({
+        message: "User deleted successfully",
+      });
     });
 
-    it("should return true even if user not found", async () => {
-      mockUserFindByIdAndDelete.mockResolvedValue(null);
+    it("should return 404 if user not found", async () => {
+      req.params.id = "nonexistentuser";
+      mockDeleteUserById.mockResolvedValue(null);
 
-      const result = await deleteUserById("nonexistentuser");
+      await deleteUser(req, res);
 
-      expect(result).toBe(true);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
+
+    it.each([null, undefined, ""])(
+      "should return 400 if userId is %s",
+      async (userId) => {
+        req.params.id = userId;
+
+        await deleteUser(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: "User ID is required",
+        });
+      }
+    );
 
     it("should handle database errors", async () => {
-      mockUserFindByIdAndDelete.mockRejectedValue(new Error("Delete failed"));
+      req.params.id = "user123";
+      mockDeleteUserById.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(deleteUserById("user123")).rejects.toThrow(
-        "Error deleting user"
-      );
+      await deleteUser(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Delete failed" });
     });
   });
 
   describe("getFavouriteRestaurants", () => {
-    const setupPopulateMock = (user) => {
-      mockUserFindById.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(user),
-      });
-    };
-
     it("should return user favourite restaurants", async () => {
       const mockFavourites = [
         { _id: "rest1", name: "Restaurant 1" },
         { _id: "rest2", name: "Restaurant 2" },
       ];
-      setupPopulateMock({
+      const mockUser = {
         _id: "user123",
         username: "testuser",
         favourite_restaurants: mockFavourites,
-      });
+      };
+      req.params.id = "user123";
+      mockFetchFavouriteRestaurants.mockResolvedValue(mockUser);
 
-      const result = await fetchFavouriteRestaurants("user123");
+      await getFavouriteRestaurants(req, res);
 
-      expect(mockUserFindById).toHaveBeenCalledWith("user123");
-      expect(result).toEqual(mockFavourites);
+      expect(mockFetchFavouriteRestaurants).toHaveBeenCalledWith("user123");
+      expect(res.json).toHaveBeenCalledWith(mockFavourites);
     });
 
     it("should return empty array if no favourites", async () => {
-      setupPopulateMock({
+      const mockUser = {
         _id: "user123",
         username: "testuser",
         favourite_restaurants: [],
-      });
+      };
+      req.params.id = "user123";
+      mockFetchFavouriteRestaurants.mockResolvedValue(mockUser);
 
-      const result = await fetchFavouriteRestaurants("user123");
+      await getFavouriteRestaurants(req, res);
 
-      expect(result).toEqual([]);
+      expect(res.json).toHaveBeenCalledWith([]);
     });
 
-    it("should return null if user does not exist", async () => {
-      setupPopulateMock(null);
+    it("should return undefined if favourites is undefined", async () => {
+      const mockUser = {
+        _id: "user123",
+        username: "testuser",
+      };
+      req.params.id = "user123";
+      mockFetchFavouriteRestaurants.mockResolvedValue(mockUser);
 
-      const result = await fetchFavouriteRestaurants("nonexistentuser");
+      await getFavouriteRestaurants(req, res);
 
-      expect(result).toBeNull();
+      expect(res.json).toHaveBeenCalledWith(undefined);
     });
 
-    it.each([null, undefined])(
-      "should throw error if userId is %s",
+    it("should return 404 if user does not exist", async () => {
+      req.params.id = "nonexistentuser";
+      mockFetchFavouriteRestaurants.mockResolvedValue(null);
+
+      await getFavouriteRestaurants(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+    });
+
+    it.each([null, undefined, ""])(
+      "should return 400 if userId is %s",
       async (userId) => {
-        await expect(fetchFavouriteRestaurants(userId)).rejects.toThrow(
-          "User ID is required"
-        );
+        req.params.id = userId;
+
+        await getFavouriteRestaurants(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: "User ID is required",
+        });
       }
     );
 
     it("should handle database errors", async () => {
-      mockUserFindById.mockReturnValue({
-        populate: jest.fn().mockRejectedValue(new Error("Database error")),
-      });
-
-      await expect(fetchFavouriteRestaurants("user123")).rejects.toThrow(
-        "Error fetching favourite restaurants"
+      req.params.id = "user123";
+      mockFetchFavouriteRestaurants.mockRejectedValue(
+        new Error("Database error")
       );
+
+      await getFavouriteRestaurants(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
     });
   });
 });

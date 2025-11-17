@@ -1,43 +1,18 @@
 import { jest } from "@jest/globals";
 
-const mockUserFindOne = jest.fn();
-const mockUserCreate = jest.fn();
-const mockUserFindById = jest.fn();
-const mockUserFind = jest.fn();
-const mockUserFindByIdAndUpdate = jest.fn();
-const mockUserFindByIdAndDelete = jest.fn();
+// Mock del repository
+const mockCreateUser = jest.fn();
+const mockFetchUserByEmail = jest.fn();
+const mockFetchUserByUsername = jest.fn();
 const mockHashPassword = jest.fn();
 const mockComparePassword = jest.fn();
 const mockIsValidEmail = jest.fn();
 const mockIsPasswordValid = jest.fn();
-const mockJwtSign = jest.fn();
 
-const mockUserModel = {
-  findOne: (query) => {
-    const result = mockUserFindOne(query);
-
-    let promise;
-    if (result && typeof result.then === "function") {
-      promise = result;
-    } else {
-      promise = Promise.resolve(result);
-    }
-    promise.select = jest.fn((field) => {
-      return promise;
-    });
-
-    return promise;
-  },
-  create: mockUserCreate,
-  findById: (id) => mockUserFindById(id),
-  find: () => mockUserFind(),
-  findByIdAndUpdate: (id, data, options) =>
-    mockUserFindByIdAndUpdate(id, data, options),
-  findByIdAndDelete: (id) => mockUserFindByIdAndDelete(id),
-};
-
-jest.unstable_mockModule("../../../models/User.model.js", () => ({
-  default: mockUserModel,
+jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
+  createUser: mockCreateUser,
+  fetchUserByEmail: mockFetchUserByEmail,
+  fetchUserByUsername: mockFetchUserByUsername,
 }));
 
 jest.unstable_mockModule("../../../utils/encryptPassword.js", () => ({
@@ -73,18 +48,28 @@ describe("Auth Controller", () => {
     first_name: "John",
     last_name: "Doe",
     is_admin: false,
-    toObject: jest.fn(function () {
-      return { ...this };
+    password: "hashed_password",
+    toObject: jest.fn(() => {
+      const obj = {
+        _id: "user123",
+        id: "user123",
+        username: "newuser",
+        email: "user@example.com",
+        first_name: "John",
+        last_name: "Doe",
+        is_admin: false,
+      };
+      return obj;
     }),
   };
 
   const setupSuccessfulRegistration = () => {
     mockIsValidEmail.mockReturnValue(true);
     mockIsPasswordValid.mockReturnValue(true);
-    const nullPromise = Promise.resolve(null);
-    mockUserFindOne.mockReturnValue(nullPromise);
+    mockFetchUserByUsername.mockResolvedValue(null);
+    mockFetchUserByEmail.mockResolvedValue(null);
     mockHashPassword.mockResolvedValue("hashed_password");
-    mockUserCreate.mockResolvedValue(mockSavedUser);
+    mockCreateUser.mockResolvedValue(mockSavedUser);
   };
 
   beforeEach(() => {
@@ -109,7 +94,16 @@ describe("Auth Controller", () => {
           message: "User registered successfully",
         })
       );
+      expect(mockFetchUserByUsername).toHaveBeenCalledWith("newuser");
+      expect(mockFetchUserByEmail).toHaveBeenCalledWith("user@example.com");
       expect(mockHashPassword).toHaveBeenCalledWith("SecurePass123!");
+      expect(mockCreateUser).toHaveBeenCalledWith({
+        username: "newuser",
+        email: "user@example.com",
+        password: "hashed_password",
+        first_name: "John",
+        last_name: "Doe",
+      });
       expect(res.json.mock.calls[0][0].user.password).toBeUndefined();
     });
 
@@ -157,15 +151,27 @@ describe("Auth Controller", () => {
       });
     });
 
-    it.each([
-      ["username", { username: "existinguser" }],
-      ["email", { email: "existing@example.com" }],
-    ])("should reject duplicate %s", async (field, existingUser) => {
+    it("should reject duplicate username", async () => {
       req.body = validUserData;
       mockIsValidEmail.mockReturnValue(true);
       mockIsPasswordValid.mockReturnValue(true);
-      const userPromise = Promise.resolve(existingUser);
-      mockUserFindOne.mockReturnValue(userPromise);
+      mockFetchUserByUsername.mockResolvedValue({ username: "existinguser" });
+      mockFetchUserByEmail.mockResolvedValue(null);
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Username or email already exists",
+      });
+    });
+
+    it("should reject duplicate email", async () => {
+      req.body = validUserData;
+      mockIsValidEmail.mockReturnValue(true);
+      mockIsPasswordValid.mockReturnValue(true);
+      mockFetchUserByUsername.mockResolvedValue(null);
+      mockFetchUserByEmail.mockResolvedValue({ email: "existing@example.com" });
 
       await register(req, res);
 
@@ -179,10 +185,10 @@ describe("Auth Controller", () => {
       req.body = validUserData;
       mockIsValidEmail.mockReturnValue(true);
       mockIsPasswordValid.mockReturnValue(true);
-      const nullPromise = Promise.resolve(null);
-      mockUserFindOne.mockReturnValue(nullPromise);
+      mockFetchUserByUsername.mockResolvedValue(null);
+      mockFetchUserByEmail.mockResolvedValue(null);
       mockHashPassword.mockResolvedValue("hashed_password");
-      mockUserCreate.mockRejectedValue(new Error("Database error"));
+      mockCreateUser.mockRejectedValue(new Error("Database error"));
 
       await register(req, res);
 
@@ -211,8 +217,7 @@ describe("Auth Controller", () => {
     };
 
     const setupSuccessfulLogin = () => {
-      const userPromise = Promise.resolve(mockUser);
-      mockUserFindOne.mockReturnValue(userPromise);
+      mockFetchUserByEmail.mockResolvedValue(mockUser);
       mockComparePassword.mockResolvedValue(true);
     };
 
@@ -222,6 +227,11 @@ describe("Auth Controller", () => {
 
       await login(req, res);
 
+      expect(mockFetchUserByEmail).toHaveBeenCalledWith("user@example.com");
+      expect(mockComparePassword).toHaveBeenCalledWith(
+        "SecurePass123!",
+        "hashed_password"
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -233,34 +243,46 @@ describe("Auth Controller", () => {
       expect(response.user.password).toBeUndefined();
     });
 
-    it.each([["email"], ["password"]])(
-      "should reject login when %s is missing",
-      async (field) => {
-        req.body = { ...validLoginData };
-        delete req.body[field];
+    it("should reject login when email is missing", async () => {
+      req.body = { ...validLoginData };
+      delete req.body.email;
 
-        await login(req, res);
+      await login(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-          error: "Email and password are required",
-        });
-      }
-    );
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Email and password are required",
+      });
+    });
 
-    it.each([
-      ["user does not exist", null, true],
-      ["password does not match", mockUser, false],
-    ])("should reject login when %s", async (_, user, passwordValid) => {
+    it("should reject login when password is missing", async () => {
+      req.body = { ...validLoginData };
+      delete req.body.password;
+
+      await login(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Email and password are required",
+      });
+    });
+
+    it("should reject login when user does not exist", async () => {
       req.body = validLoginData;
-      if (user === null) {
-        const nullPromise = Promise.resolve(null);
-        mockUserFindOne.mockReturnValue(nullPromise);
-      } else {
-        const userPromise = Promise.resolve(user);
-        mockUserFindOne.mockReturnValue(userPromise);
-      }
-      mockComparePassword.mockResolvedValue(passwordValid);
+      mockFetchUserByEmail.mockResolvedValue(null);
+
+      await login(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Invalid email or password",
+      });
+    });
+
+    it("should reject login when password does not match", async () => {
+      req.body = validLoginData;
+      mockFetchUserByEmail.mockResolvedValue(mockUser);
+      mockComparePassword.mockResolvedValue(false);
 
       await login(req, res);
 
@@ -272,9 +294,7 @@ describe("Auth Controller", () => {
 
     it("should handle database errors", async () => {
       req.body = validLoginData;
-      mockUserFindOne.mockReturnValue(
-        Promise.reject(new Error("Database error"))
-      );
+      mockFetchUserByEmail.mockRejectedValue(new Error("Database error"));
 
       await login(req, res);
 
