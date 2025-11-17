@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 import connectDB from "./config/database.js";
 
 import restaurantsAPIRoute from "./routes/restaurants.routes.js";
@@ -14,7 +16,19 @@ const port = process.env.PORT || 3000;
 
 const app = express();
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path.startsWith("/api/auth"),
+});
+
+app.use(morgan("dev"));
 app.use(cors());
+
+app.use("/api/", limiter);
 
 app.use(express.json());
 
