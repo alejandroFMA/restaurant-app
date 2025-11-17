@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login } from "../api/authAPI";
+import authAPI from "../api/authAPI";
 import { useMutation } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 
@@ -14,11 +14,10 @@ const Login = () => {
     isError,
     error,
   } = useMutation({
-    mutationFn: ({ email, password }) => login(email, password),
+    mutationFn: ({ email, password }) => authAPI.login(email, password),
     onSuccess: (data) => {
       if (data.token && data.user) {
         setAuth(data.user, data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
       }
     },
   });
