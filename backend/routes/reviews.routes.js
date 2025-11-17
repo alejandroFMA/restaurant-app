@@ -12,7 +12,6 @@ import { authorize, ownerOrAdmin } from "../middleware/authentication.js";
 const router = express.Router();
 
 router.post("/", authorize(), createReview);
-
 router.get("/restaurant/:restaurantId", authorize(), getReviewsForRestaurant);
 router.get("/user/:userId", authorize(), getReviewsByUser);
 router.get("/:reviewId", authorize(), getReviewById);

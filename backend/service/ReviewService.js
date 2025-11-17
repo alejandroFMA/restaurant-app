@@ -1,4 +1,7 @@
-import { fetchRestaurantById } from "../repository/restaurants.repository.js";
+import {
+  fetchRestaurantById,
+  updateRestaurantById,
+} from "../repository/restaurants.repository.js";
 import { fetchAllReviewsForRestaurant } from "../repository/reviews.repository.js";
 
 export const updateRestaurantAvgRating = async (restaurantId) => {

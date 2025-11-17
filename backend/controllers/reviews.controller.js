@@ -24,6 +24,10 @@ const createReview = async (req, res) => {
       rating,
       review,
     });
+
+    // Update restaurant average rating after creating review
+    await updateRestaurantAvgRating(restaurant);
+
     res.status(201).json(savedReview);
   } catch (error) {
     res.status(500).json({ error: error.message });
