@@ -10,7 +10,6 @@ const register = async (req, res, next) => {
   try {
     const { username, email, password, first_name, last_name } = req.body;
 
-    // Verificar si el username ya existe
     const existingUsername = await fetchUserByUsername(username);
     if (existingUsername) {
       const error = new Error("Username already exists");
@@ -18,7 +17,6 @@ const register = async (req, res, next) => {
       return next(error);
     }
 
-    // Verificar si el email ya existe
     const existingEmail = await fetchUserByEmail(email);
     if (existingEmail) {
       const error = new Error("Email already exists");
