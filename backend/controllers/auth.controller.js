@@ -8,17 +8,18 @@ import { hashPassword, comparePassword } from "../utils/encryptPassword.js";
 
 const register = async (req, res, next) => {
   try {
-    const {
-      username,
-      email,
-      password,
-      first_name: firstName,
-      last_name: lastName,
-    } = req.body;
-    const existingUser =
-      (await fetchUserByUsername(username)) || (await fetchUserByEmail(email));
-    if (existingUser) {
-      const error = new Error("Username or email already exists");
+    const { username, email, password, first_name, last_name } = req.body;
+
+    const existingUsername = await fetchUserByUsername(username);
+    if (existingUsername) {
+      const error = new Error("Username already exists");
+      error.statusCode = 409;
+      return next(error);
+    }
+
+    const existingEmail = await fetchUserByEmail(email);
+    if (existingEmail) {
+      const error = new Error("Email already exists");
       error.statusCode = 409;
       return next(error);
     }
@@ -28,9 +29,13 @@ const register = async (req, res, next) => {
       username,
       email,
       password: hashedPassword,
-      first_name: firstName,
-      last_name: lastName,
+      first_name,
+      last_name,
     });
+
+    console.log(
+      `User created successfully: ${savedUser.username} (ID: ${savedUser._id})`
+    );
 
     const userResponse = savedUser.toObject();
     delete userResponse.password;
@@ -39,6 +44,14 @@ const register = async (req, res, next) => {
       .status(201)
       .json({ message: "User registered successfully", user: userResponse });
   } catch (error) {
+    // Si es un error de duplicado de Mongoose, devolver un error 409
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const errorMessage = `${field} already exists`;
+      const duplicateError = new Error(errorMessage);
+      duplicateError.statusCode = 409;
+      return next(duplicateError);
+    }
     next(error);
   }
 };

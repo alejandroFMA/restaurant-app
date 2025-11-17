@@ -40,7 +40,6 @@ UserSchema.set("toJSON", {
     delete ret.email;
     delete ret.__v;
     delete ret.password;
-    delete ret.is_admin;
     return ret;
   },
 });

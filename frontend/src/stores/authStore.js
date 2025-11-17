@@ -14,10 +14,6 @@ const useAuthStore = create(
           token,
           isAuthenticated: !!token,
         });
-        if (token) {
-          localStorage.setItem("token", token);
-          localStorage.setItem("user", JSON.stringify(user));
-        }
       },
 
       logout: () => {
@@ -26,31 +22,19 @@ const useAuthStore = create(
           token: null,
           isAuthenticated: false,
         });
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
       },
 
       initialize: () => {
-        const token = localStorage.getItem("token");
-        const userStr = localStorage.getItem("user");
-        if (token && userStr) {
-          try {
-            const user = JSON.parse(userStr);
-            set({
-              user,
-              token,
-              isAuthenticated: true,
-            });
-          } catch (error) {
-            console.error("Error parsing user from localStorage:", error);
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            set({
-              user: null,
-              token: null,
-              isAuthenticated: false,
-            });
-          }
+        if (localStorage.getItem("token") || localStorage.getItem("user")) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        }
+
+        const state = useAuthStore.getState();
+        if (state.token && state.user && !state.isAuthenticated) {
+          set({ isAuthenticated: true });
+        } else if ((!state.token || !state.user) && state.isAuthenticated) {
+          set({ isAuthenticated: false });
         }
       },
     }),

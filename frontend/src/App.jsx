@@ -1,22 +1,8 @@
-import { useEffect } from "react";
 import "./App.css";
-import useAuthStore from "./stores/authStore";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Router from "./routes/Router";
 
 function App() {
-  const { initialize } = useAuthStore();
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  return (
-    <>
-      <Login />
-      <Register />
-    </>
-  );
+  return <Router />;
 }
 
 export default App;
