@@ -6,6 +6,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import ProtectedRoutes from "../components/ProtectedRoutes";
+import Layout from "../components/layout/Layout";
 
 const Router = () => {
   const { initialize, isAuthenticated } = useAuthStore();
@@ -35,13 +36,14 @@ const Router = () => {
         />
 
         <Route
-          path="/dashboard"
           element={
             <ProtectedRoutes>
-              <Dashboard />
+              <Layout />
             </ProtectedRoutes>
           }
-        />
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
 
         <Route
           path="*"
