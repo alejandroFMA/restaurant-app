@@ -5,13 +5,17 @@ const authorize = (requiredRole) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Not Authorized" });
+      const error = new Error("Not Authorized");
+      error.statusCode = 401;
+      return next(error);
     }
 
     const token = authHeader.split(" ")[1];
 
     if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not set");
+      const error = new Error("JWT_SECRET is not set");
+      error.statusCode = 500;
+      return next(error);
     }
 
     try {
@@ -24,12 +28,15 @@ const authorize = (requiredRole) => {
       };
 
       if (requiredRole === "admin" && !req.user.is_admin) {
-        return res.status(403).json({ error: "Forbidden: admin only" });
+        const error = new Error("Forbidden: admin only");
+        error.statusCode = 403;
+        return next(error);
       }
 
       next();
     } catch (error) {
-      return res.status(401).json({ error: "Invalid Token" });
+      error.statusCode = 401;
+      return next(error);
     }
   };
 };
@@ -37,35 +44,35 @@ const authorize = (requiredRole) => {
 const ownerOrAdmin = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const resourceUserId = req.body.userId || req.params.userId;
     const reviewId = req.params.reviewId;
+
+    let resourceUserId = req.body.userId || req.params.userId;
 
     if (reviewId) {
       const Review = (await import("../schema/Review.schema.js")).default;
       const review = await Review.findById(reviewId);
 
       if (!review) {
-        return res.status(404).json({ error: "Resource not found" });
+        const error = new Error("Resource not found");
+        error.statusCode = 404;
+        return next(error);
       }
 
-      if (req.user.is_admin || review.user.toString() === userId) {
-        return next();
-      }
-
-      return res.status(403).json({
-        error: "Unauthorized: You can only modify your own resources",
-      });
+      resourceUserId = review.user.toString();
     }
 
     if (req.user.is_admin || userId === resourceUserId) {
       return next();
     }
 
-    return res.status(403).json({
-      error: "Unauthorized: You can only modify your own resources",
-    });
+    const error = new Error(
+      "Unauthorized: You can only modify your own resources"
+    );
+    error.statusCode = 403;
+    return next(error);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    error.statusCode = error.statusCode || 500;
+    return next(error);
   }
 };
 

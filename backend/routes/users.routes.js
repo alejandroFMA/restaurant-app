@@ -9,18 +9,63 @@ import {
   getFavouriteRestaurants,
 } from "../controllers/users.controller.js";
 import { authorize, ownerOrAdmin } from "../middleware/authentication.js";
+import {
+  updateUserValidator,
+  getUserByEmailValidator,
+  getUserByUsernameValidator,
+} from "../middleware/validators/user.validator.js";
+import { validateObjectIdParam } from "../middleware/validators/common.validators.js";
+import { validationHandler } from "../middleware/validationHandler.js";
 
 const router = express.Router();
 
-// Specific routes must come before parameterized routes
 router.get("/", authorize("admin"), getAllUsers);
-router.get("/email/:email", authorize("admin"), getUserByEmail);
-router.get("/username/:username", authorize(), getUserByUsername);
-router.get("/:id/favourites", authorize(), getFavouriteRestaurants);
-router.get("/:id", authorize(), getUserById);
+router.get(
+  "/email/:email",
+  authorize("admin"),
+  getUserByEmailValidator,
+  validationHandler,
+  getUserByEmail
+);
+router.get(
+  "/username/:username",
+  authorize(),
+  getUserByUsernameValidator,
+  validationHandler,
+  getUserByUsername
+);
+router.get(
+  "/:id/favourites",
+  authorize(),
+  validateObjectIdParam("id"),
+  validationHandler,
+  getFavouriteRestaurants
+);
+router.get(
+  "/:id",
+  authorize(),
+  validateObjectIdParam("id"),
+  validationHandler,
+  getUserById
+);
 
-router.put("/:id", authorize(), ownerOrAdmin, updateUser);
+router.put(
+  "/:id",
+  authorize(),
+  ownerOrAdmin,
+  validateObjectIdParam("id"),
+  updateUserValidator,
+  validationHandler,
+  updateUser
+);
 
-router.delete("/:id", authorize("admin"), ownerOrAdmin, deleteUser);
+router.delete(
+  "/:id",
+  authorize("admin"),
+  ownerOrAdmin,
+  validateObjectIdParam("id"),
+  validationHandler,
+  deleteUser
+);
 
 export default router;

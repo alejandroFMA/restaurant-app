@@ -1,6 +1,11 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { register, login } from "../controllers/auth.controller.js";
+import {
+  registerValidator,
+  loginValidator,
+} from "../middleware/validators/auth.validators.js";
+import { validationHandler } from "../middleware/validationHandler.js";
 
 const router = express.Router();
 
@@ -13,7 +18,13 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post("/register", authLimiter, register);
-router.post("/login", authLimiter, login);
+router.post(
+  "/register",
+  authLimiter,
+  registerValidator,
+  validationHandler,
+  register
+);
+router.post("/login", authLimiter, loginValidator, validationHandler, login);
 
 export default router;

@@ -6,7 +6,11 @@ import { fetchAllReviewsForRestaurant } from "../repository/reviews.repository.j
 
 export const updateRestaurantAvgRating = async (restaurantId) => {
   const restaurant = await fetchRestaurantById(restaurantId);
-  if (!restaurant) throw new Error("Restaurant not found");
+  if (!restaurant) {
+    const error = new Error("Restaurant not found");
+    error.statusCode = 404;
+    throw error;
+  }
 
   const reviews = await fetchAllReviewsForRestaurant(restaurantId);
   const reviewsCount = reviews.length;
