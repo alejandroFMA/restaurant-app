@@ -26,6 +26,15 @@ const ReviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+ReviewSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
+
 // Only one review per user per restaurant
 ReviewSchema.index({ user: 1, restaurant: 1 }, { unique: true });
 
