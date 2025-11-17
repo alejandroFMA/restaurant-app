@@ -1,10 +1,9 @@
 import React from "react";
 import restaurantsAPI from "../api/restaurantsAPI";
 import { useQuery } from "@tanstack/react-query";
-import useAuthStore from "../stores/authStore";
+import RestaurantCard from "../components/RestaurantCard";
 
 const Dashboard = () => {
-  const { user } = useAuthStore();
   const {
     data: restaurants,
     isLoading,
@@ -16,17 +15,14 @@ const Dashboard = () => {
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      <p>Welcome, {user?.username}</p>
-      <p>You are {user?.is_admin ? "an admin" : "a user"}</p>
-      <p>You have {restaurants?.length} restaurants in your dashboard</p>
       {isLoading && <p>Loading...</p>}
       {error && <p>Error: {error.message}</p>}
       {restaurants && (
-        <p>
-          Restaurants:{" "}
-          {restaurants.map((restaurant) => restaurant.name).join(", ")}
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {restaurants.map((restaurant) => (
+            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+          ))}
+        </div>
       )}
     </div>
   );
