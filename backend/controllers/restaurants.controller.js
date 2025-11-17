@@ -61,11 +61,11 @@ const getRestaurantById = async (req, res) => {
   const restaurantId = req.params.id;
   try {
     if (!restaurantId) {
-      throw new Error("Restaurant ID is required");
+      return res.status(400).json({ error: "Restaurant ID is required" });
     }
     const restaurant = await fetchRestaurantById(restaurantId);
     if (!restaurant) {
-      throw new Error("Restaurant not found");
+      return res.status(404).json({ error: "Restaurant not found" });
     }
 
     res.status(200).json(restaurant);
@@ -91,7 +91,7 @@ const getRestaurantByName = async (req, res) => {
     }
     const restaurant = await fetchRestaurantByName(name);
     if (!restaurant) {
-      throw new Error("Restaurant not found");
+      return res.status(404).json({ error: "Restaurant not found" });
     }
     res.status(200).json(restaurant);
   } catch (error) {

@@ -65,13 +65,13 @@ describe("Users Controller", () => {
       expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should return 500 if user does not exist", async () => {
+    it("should return 404 if user does not exist", async () => {
       req.params.id = "nonexistentuser";
       mockFetchUserById.mockResolvedValue(null);
 
       await getUserById(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
@@ -82,7 +82,7 @@ describe("Users Controller", () => {
 
         await getUserById(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
           error: "User ID is required",
         });
@@ -153,13 +153,13 @@ describe("Users Controller", () => {
       expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should return 500 if email does not exist", async () => {
+    it("should return 404 if email does not exist", async () => {
       req.params.email = "nonexistent@example.com";
       mockFetchUserByEmail.mockResolvedValue(null);
 
       await getUserByEmail(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
@@ -191,13 +191,13 @@ describe("Users Controller", () => {
       expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    it("should return 500 if username does not exist", async () => {
+    it("should return 404 if username does not exist", async () => {
       req.params.username = "nonexistentuser";
       mockFetchUserByUsername.mockResolvedValue(null);
 
       await getUserByUsername(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
@@ -256,26 +256,26 @@ describe("Users Controller", () => {
       expect(mockUpdateUserById).toHaveBeenCalledWith("user123", filteredData);
     });
 
-    it("should return 500 if user does not exist", async () => {
+    it("should return 404 if user does not exist", async () => {
       req.params.id = "nonexistentuser";
       req.body = { first_name: "Jane" };
       mockUpdateUserById.mockResolvedValue(null);
 
       await updateUser(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
     it.each([null, undefined, ""])(
-      "should return 500 if userId is %s",
+      "should return 400 if userId is %s",
       async (userId) => {
         req.params.id = userId;
         req.body = { first_name: "Jane" };
 
         await updateUser(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
           error: "User ID is required",
         });
@@ -310,24 +310,24 @@ describe("Users Controller", () => {
       });
     });
 
-    it("should return 500 if user not found", async () => {
+    it("should return 404 if user not found", async () => {
       req.params.id = "nonexistentuser";
       mockDeleteUserById.mockResolvedValue(null);
 
       await deleteUser(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
     it.each([null, undefined, ""])(
-      "should return 500 if userId is %s",
+      "should return 400 if userId is %s",
       async (userId) => {
         req.params.id = userId;
 
         await deleteUser(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
           error: "User ID is required",
         });
@@ -392,24 +392,24 @@ describe("Users Controller", () => {
       expect(res.json).toHaveBeenCalledWith(undefined);
     });
 
-    it("should return 500 if user does not exist", async () => {
+    it("should return 404 if user does not exist", async () => {
       req.params.id = "nonexistentuser";
       mockFetchFavouriteRestaurants.mockResolvedValue(null);
 
       await getFavouriteRestaurants(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
     it.each([null, undefined, ""])(
-      "should return 500 if userId is %s",
+      "should return 400 if userId is %s",
       async (userId) => {
         req.params.id = userId;
 
         await getFavouriteRestaurants(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
           error: "User ID is required",
         });

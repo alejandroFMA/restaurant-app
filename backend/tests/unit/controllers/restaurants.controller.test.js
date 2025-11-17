@@ -144,22 +144,22 @@ describe("Restaurants Controller", () => {
       expect(res.json).toHaveBeenCalledWith(mockRestaurant);
     });
 
-    it("should return 500 if restaurant not found", async () => {
+    it("should return 404 if restaurant not found", async () => {
       req.params.id = "nonexistent";
       mockFetchRestaurantById.mockResolvedValue(null);
 
       await getRestaurantById(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "Restaurant not found" });
     });
 
-    it("should return 500 if ID is not provided", async () => {
+    it("should return 400 if ID is not provided", async () => {
       req.params.id = undefined;
 
       await getRestaurantById(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         error: "Restaurant ID is required",
       });
@@ -228,15 +228,15 @@ describe("Restaurants Controller", () => {
       expect(res.json).toHaveBeenCalledWith(mockRestaurant);
     });
 
-    it("should return 500 if restaurant not found", async () => {
+    it("should return 404 if restaurant not found", async () => {
       req.params.name = "nonexistent";
       mockFetchRestaurantByName.mockResolvedValue(null);
 
       await getRestaurantByName(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
-        error: "Error fetching restaurant: Restaurant not found",
+        error: "Restaurant not found",
       });
     });
 

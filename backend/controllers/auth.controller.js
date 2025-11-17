@@ -1,4 +1,8 @@
-import User from "../schema/User.schema.js";
+import {
+  createUser,
+  fetchUserByEmail,
+  fetchUserByUsername,
+} from "../repository/users.repository.js";
 import jwt from "jsonwebtoken";
 import { hashPassword, comparePassword } from "../utils/encryptPassword.js";
 import { isValidEmail, isPasswordValid } from "../utils/checkUserFields.js";
@@ -30,7 +34,8 @@ const register = async (req, res) => {
           "Password must be at least 8 characters long and include a number and a special character",
       });
     }
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    const existingUser =
+      (await fetchUserByUsername(username)) || (await fetchUserByEmail(email));
     if (existingUser) {
       return res
         .status(409)
@@ -38,7 +43,7 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await hashPassword(password);
-    const savedUser = await User.create({
+    const savedUser = await createUser({
       username,
       email,
       password: hashedPassword,
@@ -63,7 +68,7 @@ const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
-    const user = await User.findOne({ email }).select("+password");
+    const user = await fetchUserByEmail(email);
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }

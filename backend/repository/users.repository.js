@@ -5,11 +5,15 @@ const fetchUserById = async (userId) => {
 };
 
 const fetchUserByEmail = async (email) => {
-  return await User.findOne({ email });
+  return await User.findOne({ email }).select("+password");
 };
 
 const fetchUserByUsername = async (username) => {
-  return await User.findOne({ username });
+  return await User.findOne({ username }).select("+password");
+};
+
+const createUser = async (data) => {
+  return await User.create(data);
 };
 
 const fetchAllUsers = async () => {
@@ -36,6 +40,7 @@ export {
   fetchUserById,
   fetchUserByEmail,
   fetchUserByUsername,
+  createUser,
   fetchAllUsers,
   fetchFavouriteRestaurants,
   updateUserById,
