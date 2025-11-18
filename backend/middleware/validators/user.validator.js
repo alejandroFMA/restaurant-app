@@ -1,4 +1,5 @@
 import { body, param } from "express-validator";
+import mongoose from "mongoose";
 
 export const getUserByEmailValidator = [
   param("email")
@@ -60,4 +61,17 @@ export const updateUserValidator = [
     .withMessage("Password must be at least 8 characters long")
     .matches(/^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]+$/)
     .withMessage("Password must include a number and a special character"),
+];
+
+export const restaurantToFavouritesValidator = [
+  body("restaurantId")
+    .trim()
+    .notEmpty()
+    .withMessage("Restaurant ID is required")
+    .custom((value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error("Invalid restaurant ID format");
+      }
+      return true;
+    }),
 ];

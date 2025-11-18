@@ -35,6 +35,18 @@ const deleteUserById = async (id) => {
   return response.data;
 };
 
+const addRestaurantToFavourites = async (restaurantId) => {
+  const response = await api.post(`/users/favourites`, { restaurantId });
+  return response.data;
+};
+
+const removeRestaurantFromFavourites = async (restaurantId) => {
+  const response = await api.delete(`/users/favourites`, {
+    data: { restaurantId },
+  });
+  return response.data;
+};
+
 export default {
   fetchAllUsers,
   fetchUserById,
@@ -43,4 +55,6 @@ export default {
   fetchFavouriteRestaurants,
   updateUserById,
   deleteUserById,
+  addRestaurantToFavourites,
+  removeRestaurantFromFavourites,
 };

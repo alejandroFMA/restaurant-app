@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import authAPI from "../api/authAPI";
 import { useMutation } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
+import Spinner from "../components/Spinner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -74,8 +75,9 @@ const Login = () => {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
+            {isPending && <Spinner className="h-5 w-5" />}
             {isPending ? "Logging in..." : "Login"}
           </button>
 
