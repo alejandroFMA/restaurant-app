@@ -75,18 +75,21 @@ const ReviewForm = () => {
   const { id } = useParams();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const userId = user?.id || user?._id;
 
   const { data: allReviews } = useQuery({
     queryKey: ["reviews", "restaurant", id],
     queryFn: () => reviewsAPI.fetchAllReviewsForRestaurant(id),
     enabled: !!id && !!user,
+    refetchOnMount: true,
   });
   const userReview = useMemo(() => {
-    if (!allReviews || !user) return null;
-    return allReviews.find(
-      (r) => r.user?.id === user.id || r.user?._id === user.id
-    );
-  }, [allReviews, user]);
+    if (!allReviews || !user || !userId) return null;
+    return allReviews.find((r) => {
+      const reviewUserId = r.user?.id || r.user?._id;
+      return reviewUserId && reviewUserId.toString() === userId.toString();
+    });
+  }, [allReviews, user, userId]);
 
   const existingReviewId = userReview?.id || null;
   const isEditMode = !!existingReviewId;
@@ -156,7 +159,7 @@ const ReviewForm = () => {
 
   return (
     <ReviewFormContent
-      key={existingReviewId || "new-review"}
+      key={`${existingReviewId || "new-review"}-${userId || "no-user"}`}
       initialRating={userReview?.rating || 0}
       initialReview={userReview?.review || ""}
       onSubmit={handleSubmit}

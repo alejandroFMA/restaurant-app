@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import authAPI from "../api/authAPI";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 import Spinner from "../components/Spinner";
 
@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     mutate: loginMutation,
@@ -20,6 +21,7 @@ const Login = () => {
     mutationFn: ({ email, password }) => authAPI.login(email, password),
     onSuccess: (data) => {
       if (data.token && data.user) {
+        queryClient.clear();
         setAuth(data.user, data.token);
         navigate("/dashboard");
       }
