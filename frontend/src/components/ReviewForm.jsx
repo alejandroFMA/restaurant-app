@@ -94,7 +94,6 @@ const ReviewForm = () => {
   const { mutate: createReview, isPending: isCreating } = useMutation({
     mutationFn: (data) => reviewsAPI.createReview(data),
     onSuccess: () => {
-      // invalidateQueries automáticamente refetch cuando la query está activa
       queryClient.invalidateQueries({
         queryKey: ["reviews", "restaurant", id],
       });
@@ -114,7 +113,6 @@ const ReviewForm = () => {
     mutationFn: ({ reviewId, data }) =>
       reviewsAPI.updateReviewById(reviewId, data),
     onSuccess: () => {
-      // invalidateQueries automáticamente refetch cuando la query está activa
       queryClient.invalidateQueries({
         queryKey: ["reviews", "restaurant", id],
       });

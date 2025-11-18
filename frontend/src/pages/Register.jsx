@@ -40,7 +40,6 @@ const Register = () => {
   const handleRegister = (e) => {
     e.preventDefault();
 
-    // Validar con Zod antes de enviar
     const formData = {
       username,
       email,
@@ -50,8 +49,6 @@ const Register = () => {
     };
 
     const result = userSchema.safeParse(formData);
-
-    console.log(result);
 
     if (!result.success) {
       console.log(result.error.issues);

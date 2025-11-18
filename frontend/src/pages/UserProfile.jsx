@@ -8,6 +8,8 @@ import UserRestaurantCard from "../components/UserRestaurantCard";
 import FavouriteComponent from "../components/FavouriteComponent";
 import UserDataCard from "../components/UserDataCard";
 import EditUserModal from "../components/EditUserModal";
+import UserDataCardSkeleton from "../components/UserDataSkeleton";
+import ListItemSkeleton from "../components/ListItemSkeleton";
 
 const UserProfile = () => {
   const { user: currentUser } = useAuthStore();
@@ -15,7 +17,6 @@ const UserProfile = () => {
   const userId = currentUser?.id || currentUser?._id;
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Obtener datos completos del usuario (incluyendo email si corresponde)
   const {
     data: userData,
     isLoading: userDataLoading,
@@ -68,13 +69,12 @@ const UserProfile = () => {
   });
 
   if (reviewsLoading || favouritesLoading || userDataLoading)
-    return <p>Loading...</p>;
+    return <UserDataCardSkeleton />;
   if (reviewsError) return <p>Error: {reviewsError.message}</p>;
   if (favouritesError) return <p>Error: {favouritesError.message}</p>;
-  if (userDataError) return <p>Error: {userDataError.message}</p>;
-  if (!currentUser) return <p>User not found</p>;
+  if (userDataError) return <UserDataCardSkeleton />;
+  if (!currentUser) return <UserDataCardSkeleton />;
 
-  // Usar userData si está disponible, sino usar currentUser del store
   const displayUser = userData || currentUser;
 
   return (
@@ -96,6 +96,13 @@ const UserProfile = () => {
         <div className="flex flex-col items-center space-y-2 my-8">
           <h2 className="text-2xl font-bold">My Favs</h2>
           <div className="flex flex-col items-center space-y-2">
+            {favouritesLoading && (
+              <div className="flex flex-col items-center space-y-2">
+                {[...Array(6)].map((_, i) => (
+                  <ListItemSkeleton key={i} />
+                ))}
+              </div>
+            )}
             {favouriteRestaurants && favouriteRestaurants.length > 0 ? (
               favouriteRestaurants.map((restaurant) => (
                 <div
@@ -117,6 +124,13 @@ const UserProfile = () => {
         <div className="flex flex-col items-center space-y-2 my-8">
           <h2 className="text-2xl font-bold">My Reviews</h2>
           <div className="flex flex-col items-center space-y-2">
+            {reviewsLoading && (
+              <div className="flex flex-col items-center space-y-2">
+                {[...Array(6)].map((_, i) => (
+                  <ListItemSkeleton key={i} />
+                ))}
+              </div>
+            )}
             {reviews && reviews.length > 0 ? (
               reviews.map((review) => (
                 <UserReviewCard

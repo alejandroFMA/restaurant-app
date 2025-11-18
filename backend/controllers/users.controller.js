@@ -15,7 +15,6 @@ import User from "../schema/User.schema.js";
 const getUserById = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    // Si el usuario es admin o está viendo su propio perfil, incluir email
     const isAdmin = req.user?.is_admin;
     const isOwnProfile = req.user?.id === userId || req.user?._id === userId;
     const includeEmail = isAdmin || isOwnProfile;
@@ -34,7 +33,6 @@ const getUserById = async (req, res, next) => {
       return next(error);
     }
 
-    // Si necesitamos incluir el email, convertirlo a objeto y agregarlo
     if (includeEmail) {
       const userObj = user.toObject();
       userObj.email = user.email;
@@ -146,7 +144,7 @@ const getFavouriteRestaurants = async (req, res, next) => {
 
 const addRestaurantToFavourites = async (req, res, next) => {
   try {
-    const userId = req.user.id; // Obtener userId del token JWT
+    const userId = req.user.id;
     const { restaurantId } = req.body;
 
     if (!restaurantId) {
@@ -155,7 +153,6 @@ const addRestaurantToFavourites = async (req, res, next) => {
       return next(error);
     }
 
-    // Validar que el restaurante existe
     const restaurant = await fetchRestaurantById(restaurantId);
     if (!restaurant) {
       const error = new Error("Restaurant not found");
