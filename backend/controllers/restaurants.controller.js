@@ -41,7 +41,7 @@ const createRestaurant = async (req, res, next) => {
       image,
       cuisine_type,
       operating_hours,
-      photograph,
+      photograph: photograph || "",
     });
     res.status(201).json(savedRestaurant);
   } catch (error) {

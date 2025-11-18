@@ -32,11 +32,13 @@ const CreateRestaurant = () => {
       navigate("/dashboard");
     },
     onError: (error) => {
-      alert(
+      console.error("Error creating restaurant:", error);
+      const errorMessage =
         error?.response?.data?.message ||
-          error.message ||
-          "Error creating restaurant"
-      );
+        error?.response?.data?.errors?.map((e) => e.msg).join(", ") ||
+        error?.message ||
+        "Error creating restaurant";
+      alert(`Error: ${errorMessage}`);
     },
   });
 
@@ -139,116 +141,113 @@ const CreateRestaurant = () => {
             )}
           </div>
 
-          <div className="w-full md:w-1/2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image URL
-                </label>
-                <input
-                  type="text"
-                  value={imageUrl}
-                  onChange={handleImageUrlChange}
-                  placeholder="https://placeholder.pics/svg/300/DEDEDE/555555/Image"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+          <div className="w-full md:w-1/2 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image URL
+              </label>
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={handleImageUrlChange}
+                placeholder="https://placeholder.pics/svg/300/DEDEDE/555555/Image"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Restaurant name: <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Restaurant name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Name: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Restaurant name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Restaurant address: <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Address"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Address: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Street name and number, Postal Code, City, Country (e.g., Calle Gran Vía 1, 28013, Madrid, Spain)"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Restaurant neighborhood:{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={neighborhood}
-                  onChange={(e) => setNeighborhood(e.target.value)}
-                  placeholder="Neighborhood"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Neighborhood: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                placeholder="Neighborhood"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Restaurant cuisine type:{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={cuisineType}
-                  onChange={(e) => setCuisineType(e.target.value)}
-                  placeholder="Cuisine type"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cuisine type: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={cuisineType}
+                onChange={(e) => setCuisineType(e.target.value)}
+                placeholder="Cuisine type"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Operating Hours:
-                </label>
-                <div className="space-y-3">
-                  {Object.keys(operatingHours).map((day) => (
-                    <div key={day}>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        {day}:
-                      </label>
-                      <input
-                        type="text"
-                        value={operatingHours[day]}
-                        onChange={(e) =>
-                          setOperatingHours({
-                            ...operatingHours,
-                            [day]: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 9:00 AM - 10:00 PM or Closed"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-4">
+                Operating Hours:
+              </label>
+              <div className="space-y-3">
+                {Object.keys(operatingHours).map((day) => (
+                  <div key={day}>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      {day}:
+                    </label>
+                    <input
+                      type="text"
+                      value={operatingHours[day]}
+                      onChange={(e) =>
+                        setOperatingHours({
+                          ...operatingHours,
+                          [day]: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., 9:00 AM - 10:00 PM or Closed"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      required
+                    />
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={isPending}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
-              >
-                {isPending && <Spinner className="h-5 w-5" />}
-                {isPending ? "Saving..." : "Save"}
-              </button>
-            </form>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+            >
+              {isPending && <Spinner className="h-5 w-5" />}
+              {isPending ? "Saving..." : "Save"}
+            </button>
           </div>
         </form>
       </div>

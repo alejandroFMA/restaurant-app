@@ -31,13 +31,15 @@ const fetchAllUsers = async () => {
 const fetchFavouriteRestaurants = async (userId) => {
   return await User.findById(userId).populate({
     path: "favourite_restaurants",
-    select: "name id",
+    select: "name id image",
     model: "Restaurant",
   });
 };
 
 const updateUserById = async (userId, data) => {
-  return await User.findByIdAndUpdate(userId, data, { new: true });
+  return await User.findByIdAndUpdate(userId, data, { new: true }).select(
+    "+email"
+  );
 };
 
 const addRestaurantToFavouritesRepository = async (userId, restaurantId) => {

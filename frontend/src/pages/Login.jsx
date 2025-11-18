@@ -32,12 +32,17 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <form
-          onSubmit={handleLogin}
-          className="bg-white rounded-lg shadow-md p-8 space-y-6"
-        >
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        <img
+          src="https://www.restaurantinteriordesign.eu/wp-content/uploads/2022/01/Capa.png"
+          alt="Login background"
+          className="w-full h-full object-cover opacity-30"
+        />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md bg-white border-2 border-black rounded-lg shadow-lg">
+        <form onSubmit={handleLogin} className="p-8 space-y-4">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
             Sign in{" "}
           </h1>

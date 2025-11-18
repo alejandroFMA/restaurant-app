@@ -66,12 +66,17 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <form
-          onSubmit={handleRegister}
-          className="bg-white rounded-lg shadow-md p-8 space-y-4"
-        >
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        <img
+          src="https://media-cdn.tripadvisor.com/media/photo-m/1280/17/09/88/77/caption.jpg"
+          alt="Register background"
+          className="w-full h-full object-cover opacity-30"
+        />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md bg-white border-2 border-black rounded-lg shadow-lg">
+        <form onSubmit={handleRegister} className="p-8 space-y-4">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
             Register
           </h1>

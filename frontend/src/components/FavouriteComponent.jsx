@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import usersAPI from "../api/usersAPI";
 import Spinner from "./Spinner";
 
-const FavouriteComponent = ({ restaurantId }) => {
+const FavouriteComponent = ({ restaurantId, userProfile = false }) => {
   const { user, updateUser } = useAuthStore();
   const queryClient = useQueryClient();
 
@@ -58,7 +58,9 @@ const FavouriteComponent = ({ restaurantId }) => {
     return favId === restaurantId || favId?.toString() === restaurantId;
   });
   const buttonText = isAlreadyInFavourites
-    ? "Remove from Favourites"
+    ? userProfile
+      ? ""
+      : "Remove from Favourites"
     : "Add to Favourites";
   const buttonIcon = isAlreadyInFavourites ? "❌" : "⭐";
   const isPending =
@@ -81,15 +83,18 @@ const FavouriteComponent = ({ restaurantId }) => {
     }
   };
 
+  const buttonPadding = userProfile ? "px-3 py-1.5" : "px-4 py-2";
+  const buttonRounded = userProfile ? "rounded" : "rounded-lg";
+
   return (
     <button
       onClick={handleClick}
       disabled={isPending}
-      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${containerBgColor}`}
+      className={`flex items-center justify-center gap-2 ${buttonRounded} ${buttonPadding} text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${containerBgColor}`}
     >
       {isPending && <Spinner className="h-4 w-4" />}
       <span className="text-lg">{buttonIcon}</span>
-      <span>{buttonText}</span>
+      {!userProfile && <span>{buttonText}</span>}
     </button>
   );
 };
