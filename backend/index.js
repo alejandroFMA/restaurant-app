@@ -64,6 +64,12 @@ app.use("/api/users", usersAPIRoute);
 app.use("/api/auth", authAPIRoute);
 app.use("/api/reviews", reviewsAPIRoute);
 
+app.use("/api/*", (req, res, next) => {
+  const error = new Error(`Route ${req.method} ${req.originalUrl} not found`);
+  error.statusCode = 404;
+  next(error);
+});
+
 app.use(errorHandler);
 
 const start = async () => {
