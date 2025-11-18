@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import restaurantsAPI from "../api/restaurantsAPI";
 import { restaurantSchema } from "../utils/validators/restaurant.schema";
+import Spinner from "../components/Spinner";
 
 const CreateRestaurant = () => {
   const navigate = useNavigate();
@@ -242,8 +243,9 @@ const CreateRestaurant = () => {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
               >
+                {isPending && <Spinner className="h-5 w-5" />}
                 {isPending ? "Saving..." : "Save"}
               </button>
             </form>

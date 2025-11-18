@@ -5,6 +5,7 @@ import reviewsAPI from "../api/reviewsAPI";
 import { useQuery } from "@tanstack/react-query";
 import ReviewCard from "../components/ReviewCard";
 import ReviewForm from "../components/ReviewForm";
+import FavouriteComponent from "../components/FavouriteComponent";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -58,8 +59,11 @@ const RestaurantDetail = () => {
         )}
 
         <div className="flex-1 max-w-lg">
-          <div className="border border-black rounded-lg p-4">
-            <ReviewForm />
+          <div className="border border-black rounded-lg p-4 flex flex-col gap-4">
+            <ReviewForm restaurantId={id} />
+          </div>
+          <div className="flex flex-row gap-2 my-2">
+            <FavouriteComponent restaurantId={id} />
           </div>
         </div>
       </div>

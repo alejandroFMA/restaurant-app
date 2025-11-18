@@ -52,7 +52,7 @@ const ownerOrAdmin = async (req, res, next) => {
     const userId = req.user.id;
     const reviewId = req.params.reviewId;
 
-    let resourceUserId = req.body?.userId || req.params.userId;
+    let resourceUserId = req.body?.userId || req.params.userId || req.params.id;
 
     if (reviewId) {
       const Review = (await import("../schema/Review.schema.js")).default;

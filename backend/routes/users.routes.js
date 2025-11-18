@@ -7,12 +7,15 @@ import {
   getUserByEmail,
   getUserByUsername,
   getFavouriteRestaurants,
+  addRestaurantToFavourites,
+  removeRestaurantFromFavourites,
 } from "../controllers/users.controller.js";
 import { authorize, ownerOrAdmin } from "../middleware/authentication.js";
 import {
   updateUserValidator,
   getUserByEmailValidator,
   getUserByUsernameValidator,
+  restaurantToFavouritesValidator,
 } from "../middleware/validators/user.validator.js";
 import { validateObjectIdParam } from "../middleware/validators/common.validators.js";
 import { validationHandler } from "../middleware/validationHandler.js";
@@ -41,6 +44,23 @@ router.get(
   validationHandler,
   getFavouriteRestaurants
 );
+
+router.post(
+  "/favourites",
+  authorize(),
+  restaurantToFavouritesValidator,
+  validationHandler,
+  addRestaurantToFavourites
+);
+
+router.delete(
+  "/favourites",
+  authorize(),
+  restaurantToFavouritesValidator,
+  validationHandler,
+  removeRestaurantFromFavourites
+);
+
 router.get(
   "/:id",
   authorize(),

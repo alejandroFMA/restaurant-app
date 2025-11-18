@@ -1,11 +1,19 @@
 import User from "../schema/User.schema.js";
 
 const fetchUserById = async (userId) => {
-  return await User.findById(userId);
+  return await User.findById(userId).populate({
+    path: "favourite_restaurants",
+    select: "name id",
+    model: "Restaurant",
+  });
 };
 
 const fetchUserByEmail = async (email) => {
-  return await User.findOne({ email }).select("+password");
+  return await User.findOne({ email }).select("+password").populate({
+    path: "favourite_restaurants",
+    select: "name id",
+    model: "Restaurant",
+  });
 };
 
 const fetchUserByUsername = async (username) => {
@@ -23,13 +31,32 @@ const fetchAllUsers = async () => {
 const fetchFavouriteRestaurants = async (userId) => {
   return await User.findById(userId).populate({
     path: "favourite_restaurants",
-    select: "name -__v",
+    select: "name id",
     model: "Restaurant",
   });
 };
 
 const updateUserById = async (userId, data) => {
   return await User.findByIdAndUpdate(userId, data, { new: true });
+};
+
+const addRestaurantToFavouritesRepository = async (userId, restaurantId) => {
+  return await User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { favourite_restaurants: restaurantId } },
+    { new: true }
+  );
+};
+
+const removeRestaurantFromFavouritesRepository = async (
+  userId,
+  restaurantId
+) => {
+  return await User.findByIdAndUpdate(
+    userId,
+    { $pull: { favourite_restaurants: restaurantId } },
+    { new: true }
+  );
 };
 
 const deleteUserById = async (userId) => {
@@ -45,4 +72,6 @@ export {
   fetchFavouriteRestaurants,
   updateUserById,
   deleteUserById,
+  addRestaurantToFavouritesRepository,
+  removeRestaurantFromFavouritesRepository,
 };

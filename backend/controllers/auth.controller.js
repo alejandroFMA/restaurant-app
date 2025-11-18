@@ -2,6 +2,7 @@ import {
   createUser,
   fetchUserByEmail,
   fetchUserByUsername,
+  fetchUserById,
 } from "../repository/users.repository.js";
 import jwt from "jsonwebtoken";
 import { hashPassword, comparePassword } from "../utils/encryptPassword.js";
@@ -44,7 +45,6 @@ const register = async (req, res, next) => {
       .status(201)
       .json({ message: "User registered successfully", user: userResponse });
   } catch (error) {
-    // Si es un error de duplicado de Mongoose, devolver un error 409
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const errorMessage = `${field} already exists`;
@@ -73,17 +73,28 @@ const login = async (req, res, next) => {
     }
 
     const userId = user.id || user._id?.toString();
+
     const token = jwt.sign(
-      { id: userId, is_admin: user.is_admin },
+      {
+        id: userId,
+        is_admin: user.is_admin,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
       }
     );
 
-    user.password = undefined;
+    console.log(user);
 
-    res.status(200).json({ message: "Login successful", user, token });
+    const userResponse = user.toObject();
+
+    console.log(userResponse);
+    delete userResponse.password;
+
+    res
+      .status(200)
+      .json({ message: "Login successful", user: userResponse, token });
   } catch (error) {
     next(error);
   }

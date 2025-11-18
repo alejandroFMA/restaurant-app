@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import RatingStars from "./RatingStars";
 import useAuthStore from "../stores/authStore";
 import { reviewSchema } from "../utils/validators/review.schema";
+import Spinner from "./Spinner";
 
 const ReviewFormContent = ({
   initialRating,
@@ -50,20 +51,22 @@ const ReviewFormContent = ({
           required
         />
       </div>
-
-      <button
-        type="submit"
-        disabled={isPending || rating === 0 || !review.trim()}
-        className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-      >
-        {isPending
-          ? isEditMode
-            ? "Updating..."
-            : "Sending..."
-          : isEditMode
-          ? "Edit Review"
-          : "Send Review"}
-      </button>
+      <div className="flex flex-row gap-2">
+        <button
+          type="submit"
+          disabled={isPending || rating === 0 || !review.trim()}
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {isPending && <Spinner className="h-4 w-4" />}
+          {isPending
+            ? isEditMode
+              ? "Updating..."
+              : "Sending..."
+            : isEditMode
+            ? "Edit Review"
+            : "Send Review"}
+        </button>
+      </div>
     </form>
   );
 };
@@ -90,14 +93,12 @@ const ReviewForm = () => {
 
   const { mutate: createReview, isPending: isCreating } = useMutation({
     mutationFn: (data) => reviewsAPI.createReview(data),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
+    onSuccess: () => {
+      // invalidateQueries automáticamente refetch cuando la query está activa
+      queryClient.invalidateQueries({
         queryKey: ["reviews", "restaurant", id],
       });
-      await queryClient.invalidateQueries({ queryKey: ["restaurants", id] });
-      await queryClient.refetchQueries({
-        queryKey: ["reviews", "restaurant", id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["restaurants", id] });
     },
     onError: (error) => {
       alert(
@@ -111,14 +112,12 @@ const ReviewForm = () => {
   const { mutate: updateReview, isPending: isUpdating } = useMutation({
     mutationFn: ({ reviewId, data }) =>
       reviewsAPI.updateReviewById(reviewId, data),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
+    onSuccess: () => {
+      // invalidateQueries automáticamente refetch cuando la query está activa
+      queryClient.invalidateQueries({
         queryKey: ["reviews", "restaurant", id],
       });
-      await queryClient.invalidateQueries({ queryKey: ["restaurants", id] });
-      await queryClient.refetchQueries({
-        queryKey: ["reviews", "restaurant", id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["restaurants", id] });
     },
     onError: (error) => {
       alert(
@@ -153,7 +152,7 @@ const ReviewForm = () => {
     }
   };
 
-  const isPending = isCreating || isUpdating;
+  const isPending = isEditMode ? isUpdating : isCreating;
 
   return (
     <ReviewFormContent

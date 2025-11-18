@@ -6,7 +6,10 @@ import {
   fetchFavouriteRestaurants,
   updateUserById,
   deleteUserById,
+  addRestaurantToFavouritesRepository,
+  removeRestaurantFromFavouritesRepository,
 } from "../repository/users.repository.js";
+import { fetchRestaurantById } from "../repository/restaurants.repository.js";
 
 const getUserById = async (req, res, next) => {
   try {
@@ -112,6 +115,87 @@ const getFavouriteRestaurants = async (req, res, next) => {
   }
 };
 
+const addRestaurantToFavourites = async (req, res, next) => {
+  try {
+    const userId = req.user.id; // Obtener userId del token JWT
+    const { restaurantId } = req.body;
+
+    if (!restaurantId) {
+      const error = new Error("Restaurant ID is required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Validar que el restaurante existe
+    const restaurant = await fetchRestaurantById(restaurantId);
+    if (!restaurant) {
+      const error = new Error("Restaurant not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const userBefore = await fetchUserById(userId);
+    if (!userBefore) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const alreadyInFavourites = userBefore.favourite_restaurants?.some(
+      (id) => id.toString() === restaurantId
+    );
+
+    if (alreadyInFavourites) {
+      const error = new Error("Restaurant already in favourites");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const user = await addRestaurantToFavouritesRepository(
+      userId,
+      restaurantId
+    );
+
+    res.status(200).json({
+      message: "Restaurant added to favourites successfully",
+      user: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeRestaurantFromFavourites = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { restaurantId } = req.body;
+
+    if (!restaurantId) {
+      const error = new Error("restaurantId is required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const user = await removeRestaurantFromFavouritesRepository(
+      userId,
+      restaurantId
+    );
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    res.status(200).json({
+      message: "Restaurant removed from favourites successfully",
+      user: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getUserById,
   getUserByEmail,
@@ -120,4 +204,6 @@ export {
   deleteUser,
   getFavouriteRestaurants,
   getAllUsers,
+  addRestaurantToFavourites,
+  removeRestaurantFromFavourites,
 };

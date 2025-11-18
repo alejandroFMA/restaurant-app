@@ -40,6 +40,12 @@ const useAuthStore = create(
           set({ isAuthenticated: false });
         }
       },
+
+      updateUser: (updatedUser) => {
+        set((state) => ({
+          user: { ...state.user, ...updatedUser },
+        }));
+      },
     }),
     {
       name: "auth-storage",
