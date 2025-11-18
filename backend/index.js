@@ -27,14 +27,12 @@ const limiter = rateLimit({
   skip: (req) => req.path.startsWith("/api/auth"),
 });
 
-app.use(morgan("dev"));
-app.use(helmet());
-
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
 ].filter(Boolean);
 
+app.use(morgan("dev"));
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -54,6 +52,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(helmet());
 
 app.use("/api/", limiter);
 
