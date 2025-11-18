@@ -14,7 +14,10 @@ const Navbar = () => {
   return (
     <nav className="bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-end items-center h-16">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="text-xl text-black font-bold">
+            Dashboard
+          </Link>
           <Menu>
             <MenuButton className="hover:bg-gray-100 rounded-md p-2">
               <p className="text-xl font-bold">
