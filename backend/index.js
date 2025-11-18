@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import connectDB from "./config/database.js";
 import errorHandler from "./middleware/errorHandler.js";
 
@@ -27,7 +28,32 @@ const limiter = rateLimit({
 });
 
 app.use(morgan("dev"));
-app.use(cors());
+app.use(helmet());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+].filter(Boolean); // Filtra valores undefined/null
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(
+          null,
+          process.env.NODE_ENV === "production" ? false : true
+        );
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 
 app.use("/api/", limiter);
 
