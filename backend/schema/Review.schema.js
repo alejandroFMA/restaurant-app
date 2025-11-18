@@ -20,7 +20,7 @@ const ReviewSchema = new mongoose.Schema(
     },
     review: {
       type: String,
-      default: "",
+      required: true,
     },
   },
   { timestamps: true }

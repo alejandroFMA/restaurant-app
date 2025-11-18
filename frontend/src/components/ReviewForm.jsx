@@ -4,6 +4,7 @@ import reviewsAPI from "../api/reviewsAPI";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import RatingStars from "./RatingStars";
 import useAuthStore from "../stores/authStore";
+import { reviewSchema } from "../utils/validators/review.schema";
 
 const ReviewFormContent = ({
   initialRating,
@@ -17,10 +18,16 @@ const ReviewFormContent = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (rating === 0) {
       alert("Please select a rating");
       return;
     }
+    if (!review.trim()) {
+      alert("Please write a review");
+      return;
+    }
+
     onSubmit({ rating, review });
   };
 
@@ -40,12 +47,13 @@ const ReviewFormContent = ({
           placeholder="Write your review here"
           className="w-full p-2 border rounded"
           rows={4}
+          required
         />
       </div>
 
       <button
         type="submit"
-        disabled={isPending || rating === 0}
+        disabled={isPending || rating === 0 || !review.trim()}
         className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
       >
         {isPending
@@ -128,10 +136,20 @@ const ReviewForm = () => {
       review,
     };
 
+    const result = reviewSchema.safeParse(reviewData);
+
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
+      alert(`Validation errors:\n${errorMessages.join("\n")}`);
+      return;
+    }
+
     if (existingReviewId) {
-      updateReview({ reviewId: existingReviewId, data: reviewData });
+      updateReview({ reviewId: existingReviewId, data: result.data });
     } else {
-      createReview(reviewData);
+      createReview(result.data);
     }
   };
 

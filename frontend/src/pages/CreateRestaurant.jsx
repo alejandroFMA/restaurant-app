@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import restaurantsAPI from "../api/restaurantsAPI";
+import { restaurantSchema } from "../utils/validators/restaurant.schema";
 
 const CreateRestaurant = () => {
   const navigate = useNavigate();
@@ -65,37 +66,6 @@ const CreateRestaurant = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!name.trim()) {
-      alert("The restaurant name is required");
-      return;
-    }
-
-    if (!address.trim()) {
-      alert("The restaurant address is required");
-      return;
-    }
-
-    if (!imageUrl.trim()) {
-      alert("The image URL is required");
-      return;
-    }
-
-    if (!isValidUrl(imageUrl)) {
-      alert("Please enter a valid URL for the image");
-      return;
-    }
-
-    if (!neighborhood.trim()) {
-      alert("The restaurant neighborhood is required");
-      return;
-    }
-
-    if (!cuisineType.trim()) {
-      alert("The restaurant cuisine type is required");
-      return;
-    }
-
-    // latlng se infiere automáticamente desde la dirección en el backend
     const restaurantData = {
       name: name.trim(),
       address: address.trim(),
@@ -114,13 +84,26 @@ const CreateRestaurant = () => {
       },
     };
 
-    createRestaurant(restaurantData);
+    const result = restaurantSchema.safeParse(restaurantData);
+
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
+      alert(`\n${errorMessages.join("\n")}`);
+      return;
+    }
+
+    createRestaurant(result.data);
   };
 
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-8">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col md:flex-row gap-8"
+        >
           <div className="w-full md:w-1/2">
             <div className="relative rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-100 aspect-video">
               {imageUrl && !imageError ? (
@@ -265,7 +248,7 @@ const CreateRestaurant = () => {
               </button>
             </form>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -19,11 +19,11 @@ export const createReviewValidator = [
     .withMessage("Rating must be between 1 and 5"),
 
   body("review")
-    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Review text is required")
     .isString()
-    .withMessage("Review must be a string")
-    .isLength({ max: 1000 })
-    .withMessage("Review must not exceed 1000 characters"),
+    .withMessage("Review must be a string"),
 ];
 
 export const updateReviewValidator = [
@@ -34,8 +34,7 @@ export const updateReviewValidator = [
 
   body("review")
     .optional()
+    .trim()
     .isString()
-    .withMessage("Review must be a string")
-    .isLength({ max: 1000 })
-    .withMessage("Review must not exceed 1000 characters"),
+    .withMessage("Review must be a string"),
 ];
