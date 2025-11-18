@@ -72,21 +72,12 @@ export const createRestaurantValidator = [
     .isLength({ min: 1, max: 200 })
     .withMessage("Address must be between 1 and 200 characters"),
 
-  validateLatLng("latlng"),
-
   body("image")
     .trim()
     .notEmpty()
     .withMessage("Image URL is required")
     .isURL()
     .withMessage("Image must be a valid URL"),
-
-  body("photograph")
-    .trim()
-    .notEmpty()
-    .withMessage("Photograph is required")
-    .isLength({ min: 1, max: 100 })
-    .withMessage("Photograph must be between 1 and 100 characters"),
 
   body("cuisine_type")
     .trim()
