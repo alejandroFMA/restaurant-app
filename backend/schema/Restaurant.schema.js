@@ -36,8 +36,7 @@ const RestaurantSchema = new mongoose.Schema({
     required: true,
   },
   operating_hours: {
-    type: Map,
-    of: String,
+    type: Object,
     required: true,
   },
   average_rating: {

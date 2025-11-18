@@ -7,6 +7,7 @@ import {
   updateRestaurantById,
   deleteRestaurantById,
 } from "../repository/restaurants.repository.js";
+import { geocodeAddress } from "../utils/geocoding.js";
 
 const createRestaurant = async (req, res, next) => {
   try {
@@ -14,18 +15,29 @@ const createRestaurant = async (req, res, next) => {
       name,
       neighborhood,
       address,
-      latlng,
       image,
       cuisine_type,
       operating_hours,
       photograph,
     } = req.body;
 
+    let coordinates;
+    try {
+      coordinates = await geocodeAddress(address);
+      console.log(`Geocoded address "${address}" to coordinates:`, coordinates);
+    } catch (geocodingError) {
+      const error = new Error(
+        `Could not geocode address "${address}": ${geocodingError.message}. Please verify the address is correct.`
+      );
+      error.statusCode = 400;
+      return next(error);
+    }
+
     const savedRestaurant = await createRestaurantRepository({
       name,
       neighborhood,
       address,
-      latlng,
+      latlng: coordinates,
       image,
       cuisine_type,
       operating_hours,
