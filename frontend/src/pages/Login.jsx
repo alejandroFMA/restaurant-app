@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import authAPI from "../api/authAPI";
 import { useMutation } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
@@ -7,6 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { setAuth } = useAuthStore();
+  const navigate = useNavigate();
 
   const {
     mutate: loginMutation,
@@ -18,6 +20,7 @@ const Login = () => {
     onSuccess: (data) => {
       if (data.token && data.user) {
         setAuth(data.user, data.token);
+        navigate("/dashboard");
       }
     },
   });
@@ -56,7 +59,7 @@ const Login = () => {
         )}
       </div>
       <div>
-        "No account? <a href="/register">Register</a>"
+        No account? <Link to="/register">Register</Link>
       </div>
     </div>
   );

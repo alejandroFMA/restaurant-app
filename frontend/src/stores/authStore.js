@@ -22,6 +22,9 @@ const useAuthStore = create(
           token: null,
           isAuthenticated: false,
         });
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("auth-storage");
       },
 
       initialize: () => {

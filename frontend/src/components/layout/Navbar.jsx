@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Menu,
   MenuButton,
@@ -11,6 +11,12 @@ import useAuthStore from "../../stores/authStore";
 
 const Navbar = () => {
   const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
   return (
     <nav className="bg-white">
       <div className="max-w-6xl mx-auto px-4">
@@ -46,7 +52,7 @@ const Navbar = () => {
               )}
               <MenuSeparator className="my-5 h-px bg-white w-4/5 mx-auto" />
               <MenuItem className="mb-4 border-0">
-                <button onClick={logout}>
+                <button onClick={handleLogout}>
                   <span className="text-black font-bold bg-white px-4 py-2 rounded-md">
                     Logout
                   </span>

@@ -9,14 +9,15 @@ const fetchReviewById = async (id) => {
 };
 
 const fetchAllReviewsForRestaurant = async (restaurantId) => {
-  return await Review.find({ restaurant: restaurantId }).populate(
-    "user",
-    "username"
-  );
+  return await Review.find({ restaurant: restaurantId })
+    .populate("user", "username")
+    .sort({ createdAt: -1 });
 };
 
 const fetchAllReviewsByUser = async (userId) => {
-  return await Review.find({ user: userId });
+  return await Review.find({ user: userId })
+    .populate("restaurant", "name")
+    .sort({ createdAt: -1 });
 };
 
 const updateReviewById = async (id, data) => {
