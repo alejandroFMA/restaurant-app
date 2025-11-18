@@ -1,6 +1,5 @@
 import { jest } from "@jest/globals";
 
-// Mock del repository
 const mockCreateUser = jest.fn();
 const mockFetchUserByEmail = jest.fn();
 const mockFetchUserByUsername = jest.fn();

@@ -53,9 +53,7 @@ app.use(
   })
 );
 app.use(helmet());
-
 app.use("/api/", limiter);
-
 app.use(express.json());
 
 // routes
@@ -64,10 +62,13 @@ app.use("/api/users", usersAPIRoute);
 app.use("/api/auth", authAPIRoute);
 app.use("/api/reviews", reviewsAPIRoute);
 
-app.use("/api/*", (req, res, next) => {
-  const error = new Error(`Route ${req.method} ${req.originalUrl} not found`);
-  error.statusCode = 404;
-  next(error);
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    const error = new Error(`Route ${req.method} ${req.originalUrl} not found`);
+    error.statusCode = 404;
+    return next(error);
+  }
+  next();
 });
 
 app.use(errorHandler);

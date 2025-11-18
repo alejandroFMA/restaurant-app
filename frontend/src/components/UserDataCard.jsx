@@ -7,7 +7,6 @@ const UserDataCard = ({ user, onEdit }) => {
     currentUser?.id === user?.id || currentUser?._id === user?._id;
   const isAdmin = currentUser?.is_admin;
 
-  // Mostrar email solo si es el propio usuario o admin
   const canViewEmail = isOwnProfile || isAdmin;
 
   return (

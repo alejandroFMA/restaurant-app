@@ -39,7 +39,6 @@ const FavouriteComponent = ({ restaurantId, userProfile = false }) => {
       if (data.user) {
         updateUser({ favourite_restaurants: data.user.favourite_restaurants });
       }
-      // Invalidar queries de favoritos para actualizar UserProfile
       queryClient.invalidateQueries({
         queryKey: ["favouriteRestaurants"],
       });
