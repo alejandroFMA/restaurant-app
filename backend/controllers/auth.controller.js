@@ -85,11 +85,7 @@ const login = async (req, res, next) => {
       }
     );
 
-    console.log(user);
-
     const userResponse = user.toObject();
-
-    console.log(userResponse);
     delete userResponse.password;
 
     res

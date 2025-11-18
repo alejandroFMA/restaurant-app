@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import RatingStars from "./RatingStars";
+import Spinner from "./Spinner";
 
 const UserReviewCard = ({ review, onDelete, isDeleting }) => {
   const restaurantId =
@@ -13,8 +14,8 @@ const UserReviewCard = ({ review, onDelete, isDeleting }) => {
       : "Restaurant";
 
   return (
-    <div className="flex flex-col gap-2 pb-4 border-b border-blue-600 w-5/12">
-      <div>
+    <div className="flex flex-col gap-2 pb-4 border-b border-blue-600 w-full max-w-2xl">
+      <div className="flex flex-row items-center justify-between gap-3">
         <div className="flex flex-row items-center gap-3">
           {restaurantId ? (
             <Link
@@ -28,18 +29,27 @@ const UserReviewCard = ({ review, onDelete, isDeleting }) => {
           )}
           <RatingStars rating={review.rating} readOnly={true} />
         </div>
-
-        <p className="text-gray-700 break-words overflow-wrap-anywhere">
-          {review.review}
-        </p>
+        <button
+          onClick={() => onDelete(review.id)}
+          disabled={isDeleting}
+          className="flex items-center justify-center gap-2 bg-red-600 text-white px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-700 transition-colors"
+        >
+          {isDeleting ? (
+            <>
+              <Spinner className="h-4 w-4" />
+              <span>Deleting...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-lg">🗑️</span>
+            </>
+          )}
+        </button>
       </div>
-      <button
-        onClick={() => onDelete(review.id)}
-        disabled={isDeleting}
-        className="bg-red-600 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-red-700"
-      >
-        {isDeleting ? "Deleting..." : "Delete"}
-      </button>
+
+      <p className="text-gray-700 break-words overflow-wrap-anywhere">
+        {review.review}
+      </p>
     </div>
   );
 };

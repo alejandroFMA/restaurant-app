@@ -99,6 +99,7 @@ const ReviewForm = () => {
         queryKey: ["reviews", "restaurant", id],
       });
       queryClient.invalidateQueries({ queryKey: ["restaurants", id] });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
     onError: (error) => {
       alert(
@@ -118,6 +119,7 @@ const ReviewForm = () => {
         queryKey: ["reviews", "restaurant", id],
       });
       queryClient.invalidateQueries({ queryKey: ["restaurants", id] });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
     onError: (error) => {
       alert(

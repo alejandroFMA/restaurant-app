@@ -23,6 +23,7 @@ export const getUserByUsernameValidator = [
 ];
 export const updateUserValidator = [
   body("first_name")
+    .optional()
     .trim()
     .notEmpty()
     .withMessage("First name is required")
@@ -30,6 +31,7 @@ export const updateUserValidator = [
     .withMessage("First name must be between 1 and 50 characters"),
 
   body("last_name")
+    .optional()
     .trim()
     .notEmpty()
     .withMessage("Last name is required")
@@ -37,6 +39,7 @@ export const updateUserValidator = [
     .withMessage("Last name must be between 1 and 50 characters"),
 
   body("username")
+    .optional()
     .trim()
     .notEmpty()
     .withMessage("Username is required")
@@ -46,21 +49,11 @@ export const updateUserValidator = [
     .withMessage("Username can only contain letters, numbers, and underscores"),
 
   body("email")
+    .optional()
     .trim()
-    .notEmpty()
-    .withMessage("Email is required")
     .isEmail()
     .withMessage("Invalid email format")
     .normalizeEmail(),
-
-  body("password")
-    .trim()
-    .notEmpty()
-    .withMessage("Password is required")
-    .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
-    .matches(/^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]+$/)
-    .withMessage("Password must include a number and a special character"),
 ];
 
 export const restaurantToFavouritesValidator = [

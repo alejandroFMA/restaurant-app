@@ -10,17 +10,38 @@ import {
   removeRestaurantFromFavouritesRepository,
 } from "../repository/users.repository.js";
 import { fetchRestaurantById } from "../repository/restaurants.repository.js";
+import User from "../schema/User.schema.js";
 
 const getUserById = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await fetchUserById(userId);
+    // Si el usuario es admin o está viendo su propio perfil, incluir email
+    const isAdmin = req.user?.is_admin;
+    const isOwnProfile = req.user?.id === userId || req.user?._id === userId;
+    const includeEmail = isAdmin || isOwnProfile;
+
+    const user = includeEmail
+      ? await User.findById(userId).select("+email").populate({
+          path: "favourite_restaurants",
+          select: "name id",
+          model: "Restaurant",
+        })
+      : await fetchUserById(userId);
+
     if (!user) {
       const error = new Error("User not found");
       error.statusCode = 404;
       return next(error);
     }
-    res.status(200).json(user);
+
+    // Si necesitamos incluir el email, convertirlo a objeto y agregarlo
+    if (includeEmail) {
+      const userObj = user.toObject();
+      userObj.email = user.email;
+      res.status(200).json(userObj);
+    } else {
+      res.status(200).json(user);
+    }
   } catch (error) {
     next(error);
   }
@@ -65,7 +86,7 @@ const getUserByUsername = async (req, res, next) => {
   }
 };
 
-const userWhiteList = ["first_name", "last_name", "username"];
+const userWhiteList = ["first_name", "last_name", "username", "email"];
 
 const updateUser = async (req, res, next) => {
   try {
@@ -79,7 +100,15 @@ const updateUser = async (req, res, next) => {
       error.statusCode = 404;
       return next(error);
     }
-    res.status(200).json(user);
+    const isAdmin = req.user?.is_admin;
+    const isOwnProfile = req.user?.id === userId || req.user?._id === userId;
+    if (isAdmin || isOwnProfile) {
+      const userObj = user.toObject();
+      userObj.email = user.email;
+      res.status(200).json(userObj);
+    } else {
+      res.status(200).json(user);
+    }
   } catch (error) {
     next(error);
   }

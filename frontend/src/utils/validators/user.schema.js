@@ -39,3 +39,23 @@ export const loginSchema = z.object({
       "Password must include a number and a special character (!@#$%^&*)"
     ),
 });
+
+export const updateUserSchema = z.object({
+  first_name: z
+    .string()
+    .min(1, "First name is required")
+    .max(50, "First name must not exceed 50 characters"),
+  last_name: z
+    .string()
+    .min(1, "Last name is required")
+    .max(50, "Last name must not exceed 50 characters"),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must not exceed 30 characters"),
+  email: z
+    .string()
+    .email("Invalid email format")
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
+    .optional(),
+});

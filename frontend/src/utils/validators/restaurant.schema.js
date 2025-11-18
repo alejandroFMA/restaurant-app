@@ -12,9 +12,21 @@ export const restaurantSchema = z.object({
   address: z
     .string()
     .min(1, "Address is required")
-    .max(200, "Address must not exceed 200 characters"),
+    .max(200, "Address must not exceed 200 characters")
+    .refine(
+      (val) => {
+        const trimmed = val.trim();
+        return (
+          trimmed.length >= 10 &&
+          (trimmed.includes(",") || trimmed.split(/\s+/).length >= 3)
+        );
+      },
+      {
+        message:
+          "Address should include street name, postal code (optional), city, and country (e.g., 'Calle Gran Vía 1, 28013, Madrid, Spain')",
+      }
+    ),
   image: z
-    .string()
     .url("Image must be a valid URL")
     .regex(/^https?:\/\/.+$/, "Image must be a valid HTTP/HTTPS URL"),
   cuisine_type: z
