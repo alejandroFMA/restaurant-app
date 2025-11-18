@@ -23,6 +23,7 @@ export const getUserByUsernameValidator = [
 ];
 export const updateUserValidator = [
   body("first_name")
+    .optional()
     .trim()
     .notEmpty()
     .withMessage("First name is required")
@@ -30,6 +31,7 @@ export const updateUserValidator = [
     .withMessage("First name must be between 1 and 50 characters"),
 
   body("last_name")
+    .optional()
     .trim()
     .notEmpty()
     .withMessage("Last name is required")
@@ -37,6 +39,7 @@ export const updateUserValidator = [
     .withMessage("Last name must be between 1 and 50 characters"),
 
   body("username")
+    .optional()
     .trim()
     .notEmpty()
     .withMessage("Username is required")

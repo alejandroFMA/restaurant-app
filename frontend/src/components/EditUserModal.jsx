@@ -4,12 +4,12 @@ import usersAPI from "../api/usersAPI";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 import Spinner from "./Spinner";
+import { updateUserSchema } from "../utils/validators/user.schema";
 
 const EditUserModal = ({ isOpen, onClose, user }) => {
   const { updateUser: updateUserStore } = useAuthStore();
   const queryClient = useQueryClient();
 
-  // Calcular valores iniciales basados en user
   const initialFormData = useMemo(
     () => ({
       first_name: user?.first_name || "",
@@ -66,28 +66,16 @@ const EditUserModal = ({ isOpen, onClose, user }) => {
     e.preventDefault();
     setErrors({});
 
-    const newErrors = {};
-    if (!formData.first_name.trim()) {
-      newErrors.first_name = "First name is required";
-    }
-    if (!formData.last_name.trim()) {
-      newErrors.last_name = "Last name is required";
-    }
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
+    const result = updateUserSchema.safeParse(formData);
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(
+        (err) => `${err.path.join(".")}: ${err.message}`
+      );
+      alert(`Validation errors:\n${errorMessages.join("\n")}`);
       return;
     }
-
-    updateUser(formData);
+    updateUser(result.data);
   };
 
   if (!isOpen) return null;
