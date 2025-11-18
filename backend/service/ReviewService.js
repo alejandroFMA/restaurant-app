@@ -19,8 +19,10 @@ export const updateRestaurantAvgRating = async (restaurantId) => {
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviewsCount
       : 0;
 
+  const roundedAvgRating = Math.round(avgRating * 100) / 100;
+
   await updateRestaurantById(restaurantId, {
-    average_rating: avgRating,
+    average_rating: roundedAvgRating,
     reviews_count: reviewsCount,
   });
 };
