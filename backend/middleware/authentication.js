@@ -43,10 +43,16 @@ const authorize = (requiredRole) => {
 
 const ownerOrAdmin = async (req, res, next) => {
   try {
+    if (!req.user || !req.user.id) {
+      const error = new Error("Not Authorized: User not authenticated");
+      error.statusCode = 401;
+      return next(error);
+    }
+
     const userId = req.user.id;
     const reviewId = req.params.reviewId;
 
-    let resourceUserId = req.body.userId || req.params.userId;
+    let resourceUserId = req.body?.userId || req.params.userId;
 
     if (reviewId) {
       const Review = (await import("../schema/Review.schema.js")).default;

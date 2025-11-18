@@ -8,6 +8,7 @@ import Dashboard from "../pages/Dashboard";
 import ProtectedRoutes from "../components/ProtectedRoutes";
 import Layout from "../components/layout/Layout";
 import RestaurantDetail from "../pages/RestaurantDetail";
+import UserProfile from "../pages/UserProfile";
 
 const Router = () => {
   const { initialize, isAuthenticated } = useAuthStore();
@@ -45,6 +46,7 @@ const Router = () => {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+          <Route path="/profile" element={<UserProfile />} />
         </Route>
 
         <Route
