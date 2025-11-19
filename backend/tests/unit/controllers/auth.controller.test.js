@@ -10,6 +10,7 @@ jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
   createUser: mockCreateUser,
   fetchUserByEmail: mockFetchUserByEmail,
   fetchUserByUsername: mockFetchUserByUsername,
+  fetchUserById: jest.fn(),
 }));
 
 jest.unstable_mockModule("../../../utils/encryptPassword.js", () => ({
@@ -108,7 +109,7 @@ describe("Auth Controller", () => {
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Username or email already exists",
+          message: "Username already exists",
           statusCode: 409,
         })
       );
@@ -124,7 +125,7 @@ describe("Auth Controller", () => {
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "Username or email already exists",
+          message: "Email already exists",
           statusCode: 409,
         })
       );
@@ -158,6 +159,13 @@ describe("Auth Controller", () => {
       email: "user@example.com",
       password: "hashed_password",
       is_admin: false,
+      toObject: jest.fn(() => ({
+        _id: "user123",
+        id: "user123",
+        username: "testuser",
+        email: "user@example.com",
+        is_admin: false,
+      })),
     };
 
     const setupSuccessfulLogin = () => {

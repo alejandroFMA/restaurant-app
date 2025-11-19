@@ -89,9 +89,14 @@ describe("Authentication Middleware", () => {
 
       middleware(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: "Not Authorized" });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Not Authorized",
+          statusCode: 401,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -116,9 +121,13 @@ describe("Authentication Middleware", () => {
 
       middleware(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: "Invalid Token" });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 401,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should deny access when non-admin user tries to access admin route", () => {
@@ -135,11 +144,14 @@ describe("Authentication Middleware", () => {
 
       middleware(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Forbidden: admin only",
-      });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Forbidden: admin only",
+          statusCode: 403,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should allow access when admin user accesses admin route", () => {
@@ -187,11 +199,14 @@ describe("Authentication Middleware", () => {
 
       await ownerOrAdmin(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Unauthorized: You can only modify your own resources",
-      });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Unauthorized: You can only modify your own resources",
+          statusCode: 403,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should prioritize body.userId over params.userId", async () => {
@@ -232,9 +247,14 @@ describe("Authentication Middleware", () => {
 
       await ownerOrAdmin(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "Resource not found" });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Resource not found",
+          statusCode: 404,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should deny access if user is not review owner", async () => {
@@ -252,11 +272,14 @@ describe("Authentication Middleware", () => {
 
       await ownerOrAdmin(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Unauthorized: You can only modify your own resources",
-      });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Unauthorized: You can only modify your own resources",
+          statusCode: 403,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should allow admin to modify any review", async () => {
@@ -283,13 +306,18 @@ describe("Authentication Middleware", () => {
       req.params.reviewId = "review123";
       req.body = {};
       req.params.userId = undefined;
-      mockReviewFindById.mockRejectedValue(new Error("Database error"));
+      const dbError = new Error("Database error");
+      mockReviewFindById.mockRejectedValue(dbError);
 
       await ownerOrAdmin(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Database error" });
-      expect(next).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+        })
+      );
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 });

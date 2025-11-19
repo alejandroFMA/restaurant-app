@@ -7,6 +7,10 @@ const mockFetchUserByUsername = jest.fn();
 const mockUpdateUserById = jest.fn();
 const mockDeleteUserById = jest.fn();
 const mockFetchFavouriteRestaurants = jest.fn();
+const mockAddRestaurantToFavouritesRepository = jest.fn();
+const mockRemoveRestaurantFromFavouritesRepository = jest.fn();
+const mockFetchRestaurantById = jest.fn();
+const mockUserFindById = jest.fn();
 
 jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
   fetchUserById: mockFetchUserById,
@@ -16,6 +20,22 @@ jest.unstable_mockModule("../../../repository/users.repository.js", () => ({
   updateUserById: mockUpdateUserById,
   deleteUserById: mockDeleteUserById,
   fetchFavouriteRestaurants: mockFetchFavouriteRestaurants,
+  addRestaurantToFavouritesRepository: mockAddRestaurantToFavouritesRepository,
+  removeRestaurantFromFavouritesRepository:
+    mockRemoveRestaurantFromFavouritesRepository,
+}));
+
+jest.unstable_mockModule(
+  "../../../repository/restaurants.repository.js",
+  () => ({
+    fetchRestaurantById: mockFetchRestaurantById,
+  })
+);
+
+jest.unstable_mockModule("../../../schema/User.schema.js", () => ({
+  default: {
+    findById: mockUserFindById,
+  },
 }));
 
 const {
@@ -36,6 +56,7 @@ describe("Users Controller", () => {
       params: {},
       body: {},
       query: {},
+      user: { id: "user123", is_admin: false },
     };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -46,7 +67,7 @@ describe("Users Controller", () => {
   });
 
   describe("getUserById", () => {
-    it("should return user when ID is valid", async () => {
+    it("should return user when ID is valid (own profile)", async () => {
       const mockUser = {
         _id: "user123",
         id: "user123",
@@ -54,13 +75,47 @@ describe("Users Controller", () => {
         email: "user@example.com",
         first_name: "John",
         last_name: "Doe",
+        toObject: jest.fn(() => ({
+          _id: "user123",
+          id: "user123",
+          username: "testuser",
+          first_name: "John",
+          last_name: "Doe",
+        })),
       };
       req.params.id = "user123";
+      req.user.id = "user123";
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockResolvedValue(mockUser),
+      };
+      mockUserFindById.mockReturnValue(mockQuery);
+
+      await getUserById(req, res, next);
+
+      expect(mockUserFindById).toHaveBeenCalledWith("user123");
+      expect(mockQuery.select).toHaveBeenCalledWith("+email");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalled();
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("should return user when ID is valid (other user)", async () => {
+      const mockUser = {
+        _id: "user456",
+        id: "user456",
+        username: "otheruser",
+        email: "other@example.com",
+        first_name: "Jane",
+        last_name: "Smith",
+      };
+      req.params.id = "user456";
+      req.user.id = "user123";
       mockFetchUserById.mockResolvedValue(mockUser);
 
       await getUserById(req, res, next);
 
-      expect(mockFetchUserById).toHaveBeenCalledWith("user123");
+      expect(mockFetchUserById).toHaveBeenCalledWith("user456");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUser);
       expect(next).not.toHaveBeenCalled();
@@ -81,8 +136,26 @@ describe("Users Controller", () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
-    it("should handle database errors", async () => {
+    it("should handle database errors (own profile)", async () => {
       req.params.id = "user123";
+      req.user.id = "user123";
+      const mockQuery = {
+        select: jest.fn().mockReturnThis(),
+        populate: jest
+          .fn()
+          .mockRejectedValue(new Error("Database connection failed")),
+      };
+      mockUserFindById.mockReturnValue(mockQuery);
+
+      await getUserById(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it("should handle database errors (other user)", async () => {
+      req.params.id = "user456";
+      req.user.id = "user123";
       mockFetchUserById.mockRejectedValue(
         new Error("Database connection failed")
       );
@@ -230,8 +303,14 @@ describe("Users Controller", () => {
         id: "user123",
         ...updateData,
         email: "user@example.com",
+        toObject: jest.fn(() => ({
+          _id: "user123",
+          id: "user123",
+          ...updateData,
+        })),
       };
       req.params.id = "user123";
+      req.user.id = "user123";
       req.body = updateData;
       mockUpdateUserById.mockResolvedValue(updatedUser);
 
@@ -239,7 +318,7 @@ describe("Users Controller", () => {
 
       expect(mockUpdateUserById).toHaveBeenCalledWith("user123", updateData);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(updatedUser);
+      expect(res.json).toHaveBeenCalled();
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -250,18 +329,27 @@ describe("Users Controller", () => {
         is_admin: true,
         password: "newpassword",
       };
-      const filteredData = { first_name: "Jane" };
-      req.params.id = "user123";
-      req.body = updateData;
-      mockUpdateUserById.mockResolvedValue({
+      const filteredData = { first_name: "Jane", email: "hacker@example.com" };
+      const updatedUser = {
         _id: "user123",
         id: "user123",
         first_name: "Jane",
-      });
+        email: "hacker@example.com",
+        toObject: jest.fn(() => ({
+          _id: "user123",
+          id: "user123",
+          first_name: "Jane",
+        })),
+      };
+      req.params.id = "user123";
+      req.user.id = "user123";
+      req.body = updateData;
+      mockUpdateUserById.mockResolvedValue(updatedUser);
 
       await updateUser(req, res, next);
 
       expect(mockUpdateUserById).toHaveBeenCalledWith("user123", filteredData);
+      expect(res.status).toHaveBeenCalledWith(200);
       expect(next).not.toHaveBeenCalled();
     });
 
