@@ -36,9 +36,13 @@ const RestaurantCard = ({ restaurant }) => {
           {(recommended || popular) && (
             <div className="flex flex-row gap-2 justify-start items-center">
               {recommended && (
-                <span className="text-green-500">🌟 Recommended!</span>
+                <span className="text-green-500 font-semibold">
+                  🌟 Recommended!
+                </span>
               )}
-              {popular && <span className="text-red-500">🔥 Popular!</span>}
+              {popular && (
+                <span className="text-red-500 font-semibold">🔥 Popular!</span>
+              )}
             </div>
           )}
         </div>

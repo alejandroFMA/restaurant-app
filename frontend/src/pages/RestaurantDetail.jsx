@@ -46,43 +46,47 @@ const RestaurantDetail = () => {
           <p className="text-white text-lg">{restaurant.cuisine_type}</p>
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4 items-center w-full">
+          <h2 className="text-2xl font-bold">Reviews</h2>
+          {reviewsLoading && <p>Loading reviews...</p>}
+          {reviewsError && <p>Error: {reviewsError.message}</p>}
+          {reviews && reviews.length > 0 ? (
+            <div className="flex flex-col gap-4 w-full max-w-3xl">
+              {reviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">
+              No reviews yet. Be the first to review!
+            </p>
+          )}
+        </div>
 
-      <div className="flex flex-row gap-10 justify-around items-center w-full">
-        {restaurant.operating_hours && (
-          <div className="flex flex-col gap-2 border border-black rounded-lg p-4 w-max">
-            {Object.entries(restaurant.operating_hours).map(([day, hours]) => (
-              <p key={day} className="text-gray-600 text-sm">
-                <span className="font-medium">{day}:</span> {hours}
-              </p>
-            ))}
-          </div>
-        )}
-
-        <div className="flex-1 max-w-lg">
-          <div className="border border-black rounded-lg p-4 flex flex-col gap-4">
-            <ReviewForm restaurantId={id} />
-          </div>
-          <div className="flex flex-row gap-2 my-2">
-            <FavouriteComponent restaurantId={id} />
+        <div className="flex flex-col gap-4 invert-y-100">
+          {restaurant.operating_hours && (
+            <div className="grid grid-cols-2 gap-4 rounded-lg p-4 w-max">
+              {Object.entries(restaurant.operating_hours).map(
+                ([day, hours]) => (
+                  <div key={day} className="flex flex-col gap-2 ml-3">
+                    <p className="text-gray-600 text-sm">
+                      <span className="font-medium">{day}:</span> {hours}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+          <div className="flex-1 max-w-lg">
+            <div className="border border-black rounded-lg p-4 flex flex-col gap-4">
+              <ReviewForm restaurantId={id} />
+            </div>
+            <div className="flex flex-row gap-2 my-2">
+              <FavouriteComponent restaurantId={id} />
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="flex flex-col gap-4 items-center w-full">
-        <h2 className="text-2xl font-bold">Reviews</h2>
-        {reviewsLoading && <p>Loading reviews...</p>}
-        {reviewsError && <p>Error: {reviewsError.message}</p>}
-        {reviews && reviews.length > 0 ? (
-          <div className="flex flex-col gap-4 w-full max-w-3xl">
-            {reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">
-            No reviews yet. Be the first to review!
-          </p>
-        )}
       </div>
     </div>
   );
