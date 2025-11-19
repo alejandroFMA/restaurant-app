@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 import Spinner from "./Spinner";
 import { updateUserSchema } from "../utils/validators/user.schema";
+import { showError } from "../utils/errorHandler";
 
 const EditUserModal = ({ isOpen, onClose, user }) => {
   const { updateUser: updateUserStore } = useAuthStore();
@@ -49,7 +50,7 @@ const EditUserModal = ({ isOpen, onClose, user }) => {
       if (error?.response?.data?.errors) {
         setErrors(error.response.data.errors);
       } else {
-        alert(errorMessage);
+        showError(error);
       }
     },
   });
@@ -72,7 +73,7 @@ const EditUserModal = ({ isOpen, onClose, user }) => {
       const errorMessages = result.error.issues.map(
         (err) => `${err.path.join(".")}: ${err.message}`
       );
-      alert(`Validation errors:\n${errorMessages.join("\n")}`);
+      showError(`Validation errors: ${errorMessages.join(", ")}`);
       return;
     }
     updateUser(result.data);

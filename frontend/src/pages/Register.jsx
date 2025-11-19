@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { passwordValidator } from "../utils/validators/passwordValidator";
 import { emailValidator } from "../utils/validators/emailValidator";
 import { userSchema } from "../utils/validators/user.schema";
+import { showError } from "../utils/errorHandler";
 import Spinner from "../components/Spinner";
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -33,7 +34,7 @@ const Register = () => {
       navigate("/login");
     },
     onError: (error) => {
-      console.error(error);
+      showError(error);
     },
   });
 
@@ -55,7 +56,7 @@ const Register = () => {
       const errorMessages = result.error.issues.map(
         (err) => `${err.path.join(".")}: ${err.message}`
       );
-      alert(`\n${errorMessages.join("\n")}`);
+      showError(`Validation errors: ${errorMessages.join(", ")}`);
       return;
     }
 

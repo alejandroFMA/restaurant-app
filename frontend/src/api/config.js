@@ -1,5 +1,6 @@
 import axios from "axios";
 import useAuthStore from "../stores/authStore";
+import useErrorStore from "../stores/errorStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -18,6 +19,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    useErrorStore.getState().setError(error);
     if (error.response?.status === 401) {
       const authStore = useAuthStore.getState();
       authStore.logout();

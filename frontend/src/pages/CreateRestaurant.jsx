@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import restaurantsAPI from "../api/restaurantsAPI";
 import { restaurantSchema } from "../utils/validators/restaurant.schema";
 import Spinner from "../components/Spinner";
+import { showError } from "../utils/errorHandler";
 
 const CreateRestaurant = () => {
   const navigate = useNavigate();
@@ -32,13 +33,7 @@ const CreateRestaurant = () => {
       navigate("/dashboard");
     },
     onError: (error) => {
-      console.error("Error creating restaurant:", error);
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.response?.data?.errors?.map((e) => e.msg).join(", ") ||
-        error?.message ||
-        "Error creating restaurant";
-      alert(`Error: ${errorMessage}`);
+      showError(error);
     },
   });
 
@@ -93,7 +88,7 @@ const CreateRestaurant = () => {
       const errorMessages = result.error.issues.map(
         (err) => `${err.path.join(".")}: ${err.message}`
       );
-      alert(`\n${errorMessages.join("\n")}`);
+      showError(`Validation errors: ${errorMessages.join(", ")}`);
       return;
     }
 
