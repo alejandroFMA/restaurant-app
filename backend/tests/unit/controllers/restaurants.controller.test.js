@@ -7,7 +7,7 @@ const mockFetchRestaurantByName = jest.fn();
 const mockFetchTopRestaurants = jest.fn();
 const mockUpdateRestaurantById = jest.fn();
 const mockDeleteRestaurantById = jest.fn();
-const mockIsValidLatLng = jest.fn();
+const mockGeocodeAddress = jest.fn();
 
 jest.unstable_mockModule(
   "../../../repository/restaurants.repository.js",
@@ -21,6 +21,10 @@ jest.unstable_mockModule(
     deleteRestaurantById: mockDeleteRestaurantById,
   })
 );
+
+jest.unstable_mockModule("../../../utils/geocoding.js", () => ({
+  geocodeAddress: mockGeocodeAddress,
+}));
 
 const {
   createRestaurant,
@@ -63,12 +67,31 @@ describe("Restaurants Controller", () => {
         id: "rest123",
         ...validRestaurantData,
       };
-      req.body = validRestaurantData;
+      req.body = {
+        name: "Test Restaurant",
+        neighborhood: "Downtown",
+        address: "123 Main St",
+        image: "https://example.com/image.jpg",
+        cuisine_type: "Italian",
+        operating_hours: { Monday: "9am-10pm" },
+        photograph: "test.jpg",
+      };
+      mockGeocodeAddress.mockResolvedValue({ lat: 40.7128, lng: -74.006 });
       mockCreateRestaurant.mockResolvedValue(mockCreated);
 
       await createRestaurant(req, res, next);
 
-      expect(mockCreateRestaurant).toHaveBeenCalledWith(validRestaurantData);
+      expect(mockGeocodeAddress).toHaveBeenCalledWith("123 Main St");
+      expect(mockCreateRestaurant).toHaveBeenCalledWith({
+        name: "Test Restaurant",
+        neighborhood: "Downtown",
+        address: "123 Main St",
+        latlng: { lat: 40.7128, lng: -74.006 },
+        image: "https://example.com/image.jpg",
+        cuisine_type: "Italian",
+        operating_hours: { Monday: "9am-10pm" },
+        photograph: "test.jpg",
+      });
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(mockCreated);
       expect(next).not.toHaveBeenCalled();
