@@ -231,10 +231,8 @@ restaurant-app/
 
 ### High Priority
 
-- Loading Skeletons instead of simple loading text
 - 404 Page for undefined routes
 - Image Upload functionality for restaurants and user avatars
-- Search and Filter functionality for restaurants
 - Deployment scripts for both frontend and backend
 
 ### Medium Priority
@@ -242,10 +240,8 @@ restaurant-app/
 - Email verification on registration
 - Password reset functionality
 - Pagination for restaurants and reviews lists
-- Advanced filtering (by cuisine, rating, location)
 - Restaurant images gallery
 - User avatars
-- Social sharing of restaurants
 - Restaurant recommendations based on user preferences
 
 ### Low Priority

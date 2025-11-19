@@ -48,14 +48,21 @@ const UserProfile = () => {
     enabled: !!userId,
   });
 
-  const { mutate: deleteReview, isPending: isDeletingReview } = useMutation({
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
+
+  const { mutate: deleteReview } = useMutation({
     mutationFn: (reviewId) => reviewsAPI.deleteReviewById(reviewId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
+      setDeletingReviewId(null);
     },
     onError: (error) => {
       showError(error);
+      setDeletingReviewId(null);
+    },
+    onMutate: (reviewId) => {
+      setDeletingReviewId(reviewId);
     },
   });
 
@@ -134,7 +141,7 @@ const UserProfile = () => {
                   key={review.id}
                   review={review}
                   onDelete={deleteReview}
-                  isDeleting={isDeletingReview}
+                  isDeleting={deletingReviewId === review.id}
                 />
               ))
             ) : (
