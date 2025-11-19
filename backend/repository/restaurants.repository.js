@@ -8,8 +8,8 @@ const fetchRestaurantById = async (id) => {
   return await Restaurant.findById(id);
 };
 
-const fetchAllRestaurants = async () => {
-  return await Restaurant.find();
+const fetchAllRestaurants = async (sortOption) => {
+  return await Restaurant.find().sort(sortOption);
 };
 
 const fetchRestaurantByName = async (name) => {

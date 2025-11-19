@@ -108,6 +108,42 @@ describe("Restaurants Controller", () => {
     });
   });
 
+  describe("getAllRestaurants", () => {
+    it("should return array of restaurants", async () => {
+      const mockRestaurants = [
+        { _id: "rest1", id: "rest1", name: "Restaurant 1" },
+        { _id: "rest2", id: "rest2", name: "Restaurant 2" },
+      ];
+      mockFetchAllRestaurants.mockResolvedValue(mockRestaurants);
+
+      await getAllRestaurants(req, res, next);
+
+      expect(mockFetchAllRestaurants).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockRestaurants);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array if no restaurants exist", async () => {
+      mockFetchAllRestaurants.mockResolvedValue([]);
+
+      await getAllRestaurants(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith([]);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("should handle database errors", async () => {
+      mockFetchAllRestaurants.mockRejectedValue(new Error("Database error"));
+
+      await getAllRestaurants(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.status).not.toHaveBeenCalled();
+    });
+  });
+
   describe("getRestaurantById", () => {
     it("should return restaurant when ID is valid", async () => {
       const mockRestaurant = {

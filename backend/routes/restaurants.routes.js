@@ -12,6 +12,7 @@ import { authorize } from "../middleware/authentication.js";
 import {
   createRestaurantValidator,
   updateRestaurantValidator,
+  getAllRestaurantsValidator,
 } from "../middleware/validators/restaurant.validators.js";
 import { validateObjectIdParam } from "../middleware/validators/common.validators.js";
 import { validationHandler } from "../middleware/validationHandler.js";
@@ -28,13 +29,19 @@ router.get(
   getRestaurantByName
 );
 router.get(
+  "/",
+  authorize(),
+  getAllRestaurantsValidator,
+  validationHandler,
+  getAllRestaurants
+);
+router.get(
   "/:id",
   authorize(),
   validateObjectIdParam("id"),
   validationHandler,
   getRestaurantById
 );
-router.get("/", authorize(), getAllRestaurants);
 router.post(
   "/",
   authorize("admin"),

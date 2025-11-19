@@ -1,26 +1,4 @@
-import { body } from "express-validator";
-
-const validateLatLng = (fieldName = "latlng") => {
-  return body(fieldName)
-    .notEmpty()
-    .withMessage(`${fieldName} is required`)
-    .isObject()
-    .withMessage(`${fieldName} must be an object`)
-    .custom((value) => {
-      if (typeof value.lat !== "number" || typeof value.lng !== "number") {
-        throw new Error(
-          `${fieldName} must have numeric lat and lng properties`
-        );
-      }
-      if (value.lat < -90 || value.lat > 90) {
-        throw new Error("Latitude must be between -90 and 90");
-      }
-      if (value.lng < -180 || value.lng > 180) {
-        throw new Error("Longitude must be between -180 and 180");
-      }
-      return true;
-    });
-};
+import { body, param } from "express-validator";
 
 const validateOperatingHours = () => {
   return body("operating_hours")
@@ -89,6 +67,23 @@ export const createRestaurantValidator = [
   validateOperatingHours(),
 ];
 
+export const getAllRestaurantsValidator = [
+  param("sortby")
+    .optional()
+    .trim()
+    .isIn([
+      "name_desc",
+      "name_asc",
+      "average_rating_desc",
+      "average_rating_asc",
+      "reviews_count_desc",
+      "reviews_count_asc",
+    ])
+    .withMessage(
+      "Invalid sort option. Valid options: name_asc, name_desc, average_rating_asc, average_rating_desc, reviews_count_asc, reviews_count_desc"
+    ),
+];
+
 export const updateRestaurantValidator = [
   body("name")
     .optional()
@@ -107,32 +102,6 @@ export const updateRestaurantValidator = [
     .trim()
     .isLength({ min: 1, max: 200 })
     .withMessage("Address must be between 1 and 200 characters"),
-
-  body("latlng")
-    .optional()
-    .isObject()
-    .withMessage("latlng must be an object")
-    .custom((value) => {
-      if (value.lat !== undefined) {
-        if (
-          typeof value.lat !== "number" ||
-          value.lat < -90 ||
-          value.lat > 90
-        ) {
-          throw new Error("Latitude must be a number between -90 and 90");
-        }
-      }
-      if (value.lng !== undefined) {
-        if (
-          typeof value.lng !== "number" ||
-          value.lng < -180 ||
-          value.lng > 180
-        ) {
-          throw new Error("Longitude must be a number between -180 and 180");
-        }
-      }
-      return true;
-    }),
 
   body("image")
     .optional()
