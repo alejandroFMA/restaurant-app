@@ -24,7 +24,6 @@ const createRestaurant = async (req, res, next) => {
     let coordinates;
     try {
       coordinates = await geocodeAddress(address);
-      console.log(`Geocoded address "${address}" to coordinates:`, coordinates);
     } catch (geocodingError) {
       const error = new Error(
         `Could not geocode address "${address}": ${geocodingError.message}. Please verify the address is correct.`
