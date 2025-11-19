@@ -66,7 +66,19 @@ const getRestaurantById = async (req, res, next) => {
 
 const getAllRestaurants = async (req, res, next) => {
   try {
-    const restaurants = await fetchAllRestaurants();
+    const sortByParam = req.query.sortby || "name_asc";
+
+    const sortOptions = {
+      name_desc: { name: -1 },
+      name_asc: { name: 1 },
+      average_rating_desc: { average_rating: -1 },
+      average_rating_asc: { average_rating: 1 },
+      reviews_count_desc: { reviews_count: -1 },
+      reviews_count_asc: { reviews_count: 1 },
+    };
+
+    const sortOption = sortOptions[sortByParam] || { name: 1 };
+    const restaurants = await fetchAllRestaurants(sortOption);
     res.status(200).json(restaurants);
   } catch (error) {
     next(error);

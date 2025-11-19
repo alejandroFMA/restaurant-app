@@ -1,7 +1,9 @@
 import api from "./config";
 
-const fetchAllRestaurants = async () => {
-  const response = await api.get(`/restaurants`);
+const fetchAllRestaurants = async (sortOption) => {
+  const response = await api.get(`/restaurants`, {
+    params: { sortby: sortOption },
+  });
   return response.data;
 };
 
