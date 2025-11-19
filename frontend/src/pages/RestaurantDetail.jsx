@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import ReviewCard from "../components/ReviewCard";
 import ReviewForm from "../components/ReviewForm";
 import FavouriteComponent from "../components/FavouriteComponent";
+import RestaurantDetailSkeleton from "../components/RestaurantDetailSkeleton";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -27,7 +28,7 @@ const RestaurantDetail = () => {
     queryFn: () => reviewsAPI.fetchAllReviewsForRestaurant(id),
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <RestaurantDetailSkeleton />;
   if (error) return <p>Error: {error.message}</p>;
   if (!restaurant) return <p>Restaurant not found</p>;
 
@@ -46,16 +47,18 @@ const RestaurantDetail = () => {
           <p className="text-white text-lg">{restaurant.cuisine_type}</p>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col md:grid md:grid-cols-2 gap-4 items-center">
         <div className="flex flex-col gap-4 items-center w-full">
           <h2 className="text-2xl font-bold">Reviews</h2>
           {reviewsLoading && <p>Loading reviews...</p>}
           {reviewsError && <p>Error: {reviewsError.message}</p>}
           {reviews && reviews.length > 0 ? (
             <div className="flex flex-col gap-4 w-full max-w-3xl">
-              {reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+              <div className="flex flex-col gap-4 items-center">
+                {reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
             </div>
           ) : (
             <p className="text-gray-500">
@@ -66,7 +69,7 @@ const RestaurantDetail = () => {
 
         <div className="flex flex-col gap-4 invert-y-100">
           {restaurant.operating_hours && (
-            <div className="grid grid-cols-2 gap-4 rounded-lg p-4 w-max">
+            <div className="flex flex-col md:grid-cols-2 gap-4 rounded-lg p-4 w-full md:w-max">
               {Object.entries(restaurant.operating_hours).map(
                 ([day, hours]) => (
                   <div key={day} className="flex flex-col gap-2 ml-3">
@@ -78,7 +81,7 @@ const RestaurantDetail = () => {
               )}
             </div>
           )}
-          <div className="flex-1 max-w-lg">
+          <div className="flex-1 w-full md:max-w-lg">
             <div className="border border-black rounded-lg p-4 flex flex-col gap-4">
               <ReviewForm restaurantId={id} />
             </div>
