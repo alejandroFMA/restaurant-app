@@ -10,6 +10,7 @@ import UserDataCard from "../components/UserDataCard";
 import EditUserModal from "../components/EditUserModal";
 import UserDataCardSkeleton from "../components/UserDataSkeleton";
 import ListItemSkeleton from "../components/ListItemSkeleton";
+import { showError } from "../utils/errorHandler";
 
 const UserProfile = () => {
   const { user: currentUser } = useAuthStore();
@@ -50,28 +51,24 @@ const UserProfile = () => {
   const { mutate: deleteReview, isPending: isDeletingReview } = useMutation({
     mutationFn: (reviewId) => reviewsAPI.deleteReviewById(reviewId),
     onSuccess: () => {
-      if (userId) {
-        queryClient.invalidateQueries({
-          queryKey: ["reviews", "user", userId],
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
     onError: (error) => {
-      console.error("Error deleting review:", error);
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        error?.message ||
-        "Error deleting review";
-      alert(errorMessage);
+      showError(error);
     },
   });
 
   if (reviewsLoading || favouritesLoading || userDataLoading)
     return <UserDataCardSkeleton />;
-  if (reviewsError) return <p>Error: {reviewsError.message}</p>;
-  if (favouritesError) return <p>Error: {favouritesError.message}</p>;
+  if (reviewsError) {
+    showError(reviewsError);
+    return <UserDataCardSkeleton />;
+  }
+  if (favouritesError) {
+    showError(favouritesError);
+    return <UserDataCardSkeleton />;
+  }
   if (userDataError) return <UserDataCardSkeleton />;
   if (!currentUser) return <UserDataCardSkeleton />;
 

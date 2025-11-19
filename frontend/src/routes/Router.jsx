@@ -10,6 +10,7 @@ import Layout from "../components/layout/Layout";
 import RestaurantDetail from "../pages/RestaurantDetail";
 import UserProfile from "../pages/UserProfile";
 import CreateRestaurant from "../pages/CreateRestaurant";
+import ErrorComponent from "../components/ErrorComponent";
 
 const Router = () => {
   const { initialize, isAuthenticated } = useAuthStore();
@@ -20,6 +21,7 @@ const Router = () => {
 
   return (
     <BrowserRouter>
+      <ErrorComponent />
       <Routes>
         <Route
           path="/"

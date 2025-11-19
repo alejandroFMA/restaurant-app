@@ -4,6 +4,8 @@ import authAPI from "../api/authAPI";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 import Spinner from "../components/Spinner";
+import { loginSchema } from "../utils/validators/user.schema";
+import { showError } from "../utils/errorHandler";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -26,11 +28,24 @@ const Login = () => {
         navigate("/dashboard");
       }
     },
+    onError: (error) => {
+      showError(error);
+    },
   });
 
   const handleLogin = (e) => {
     e.preventDefault();
-    loginMutation({ email, password });
+
+    const loginData = { email, password };
+    const result = loginSchema.safeParse(loginData);
+
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.message}`);
+      showError(errorMessages.join("\n"));
+      return;
+    }
+
+    loginMutation(result.data);
   };
 
   return (

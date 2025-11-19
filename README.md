@@ -231,9 +231,7 @@ restaurant-app/
 
 ### High Priority
 
-- Error Boundaries for better error handling
 - Loading Skeletons instead of simple loading text
-- Toast Notifications for user feedback
 - 404 Page for undefined routes
 - Image Upload functionality for restaurants and user avatars
 - Search and Filter functionality for restaurants

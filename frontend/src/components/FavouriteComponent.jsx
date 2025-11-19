@@ -3,6 +3,7 @@ import useAuthStore from "../stores/authStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import usersAPI from "../api/usersAPI";
 import Spinner from "./Spinner";
+import { showError } from "../utils/errorHandler";
 
 const FavouriteComponent = ({ restaurantId, userProfile = false }) => {
   const { user, updateUser } = useAuthStore();
@@ -22,11 +23,7 @@ const FavouriteComponent = ({ restaurantId, userProfile = false }) => {
       });
     },
     onError: (error) => {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Error adding restaurant to favourites";
-      alert(errorMessage);
+      showError(error);
     },
   });
 
@@ -44,11 +41,7 @@ const FavouriteComponent = ({ restaurantId, userProfile = false }) => {
       });
     },
     onError: (error) => {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Error removing restaurant from favourites";
-      alert(errorMessage);
+      showError(error);
     },
   });
 
@@ -71,7 +64,7 @@ const FavouriteComponent = ({ restaurantId, userProfile = false }) => {
 
   const handleClick = () => {
     if (!restaurantId) {
-      alert("Restaurant ID is missing");
+      showError("Restaurant ID is missing");
       return;
     }
 

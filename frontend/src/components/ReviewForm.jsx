@@ -6,6 +6,7 @@ import RatingStars from "./RatingStars";
 import useAuthStore from "../stores/authStore";
 import { reviewSchema } from "../utils/validators/review.schema";
 import Spinner from "./Spinner";
+import { showError } from "../utils/errorHandler";
 
 const ReviewFormContent = ({
   initialRating,
@@ -21,11 +22,11 @@ const ReviewFormContent = ({
     e.preventDefault();
 
     if (rating === 0) {
-      alert("Please select a rating");
+      showError("Please select a rating");
       return;
     }
     if (!review.trim()) {
-      alert("Please write a review");
+      showError("Please write a review");
       return;
     }
 
@@ -104,11 +105,7 @@ const ReviewForm = () => {
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
     onError: (error) => {
-      alert(
-        error?.response?.data?.message ||
-          error.message ||
-          "Error creating review"
-      );
+      showError(error);
     },
   });
 
@@ -123,11 +120,7 @@ const ReviewForm = () => {
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
     onError: (error) => {
-      alert(
-        error?.response?.data?.message ||
-          error.message ||
-          "Error updating review"
-      );
+      showError(error);
     },
   });
 
@@ -144,7 +137,7 @@ const ReviewForm = () => {
       const errorMessages = result.error.issues.map(
         (err) => `${err.path.join(".")}: ${err.message}`
       );
-      alert(`Validation errors:\n${errorMessages.join("\n")}`);
+      showError(`Validation errors: ${errorMessages.join(", ")}`);
       return;
     }
 
