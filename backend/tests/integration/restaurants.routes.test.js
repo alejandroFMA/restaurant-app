@@ -4,9 +4,6 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
-process.env.JWT_SECRET = "test-secret-key-for-integration-tests";
-process.env.NODE_ENV = "test";
-
 const mockGeocodeAddress = jest.fn();
 jest.unstable_mockModule("../../utils/geocoding.js", () => ({
   geocodeAddress: mockGeocodeAddress,

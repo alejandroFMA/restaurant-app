@@ -4,9 +4,6 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
-process.env.JWT_SECRET = "test-secret-key-for-integration-tests";
-process.env.NODE_ENV = "test";
-
 const { default: app } = await import("../../index.js");
 const Review = (await import("../../schema/Review.schema.js")).default;
 const User = (await import("../../schema/User.schema.js")).default;

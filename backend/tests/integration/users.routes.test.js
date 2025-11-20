@@ -4,9 +4,6 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
-process.env.JWT_SECRET = "test-secret-key-for-integration-tests";
-process.env.NODE_ENV = "test";
-
 const { default: app } = await import("../../index.js");
 const User = (await import("../../schema/User.schema.js")).default;
 const Restaurant = (await import("../../schema/Restaurant.schema.js")).default;
@@ -408,7 +405,6 @@ describe("Users Routes", () => {
         "Restaurant added to favourites successfully"
       );
       expect(response.body.user.favourite_restaurants.length).toBe(1);
-      // Sin populate, favourite_restaurants contiene solo IDs como strings
       const favouriteId =
         response.body.user.favourite_restaurants[0].toString();
       expect(favouriteId).toBe(restaurant._id.toString());
