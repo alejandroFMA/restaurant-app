@@ -52,6 +52,16 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run tests
+      - name: Start development server
+        working-directory: ./frontend
+        run: npm run dev &
+
+      - name: Wait for server
+        run: |
+          echo "Waiting for server to start..."
+          timeout 60 bash -c 'until curl -f http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
+          echo "Server is ready!"
+
+      - name: Run Cypress tests
         working-directory: ./frontend
         run: npm test
