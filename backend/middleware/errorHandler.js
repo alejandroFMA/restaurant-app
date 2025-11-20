@@ -1,5 +1,4 @@
 const errorHandler = (err, req, res, next) => {
-  // Solo imprimir errores en desarrollo, no en tests
   if (process.env.NODE_ENV !== "test") {
     console.error(err.stack);
   }

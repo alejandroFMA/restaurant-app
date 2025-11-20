@@ -34,10 +34,6 @@ const register = async (req, res, next) => {
       last_name,
     });
 
-    console.log(
-      `User created successfully: ${savedUser.username} (ID: ${savedUser._id})`
-    );
-
     const userResponse = savedUser.toObject();
     delete userResponse.password;
 

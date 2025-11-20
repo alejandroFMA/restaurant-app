@@ -52,7 +52,6 @@ const Register = () => {
     const result = userSchema.safeParse(formData);
 
     if (!result.success) {
-      console.log(result.error.issues);
       const errorMessages = result.error.issues.map(
         (err) => `${err.path.join(".")}: ${err.message}`
       );

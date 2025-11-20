@@ -1,0 +1,58 @@
+{
+    "restaurants": [
+        {
+            "id": "507f1f77bcf86cd799439022",
+            "name": "Another Restaurant",
+            "address": "456 Oak Ave",
+            "cuisine_type": "French",
+            "neighborhood": "Uptown",
+            "image": "https://example.com/image2.jpg",
+            "average_rating": 4.0,
+            "reviews_count": 5
+        },
+        {
+            "id": "507f1f77bcf86cd799439023",
+            "name": "Best Pizza Place",
+            "address": "789 Pine St",
+            "cuisine_type": "Italian",
+            "neighborhood": "Midtown",
+            "image": "https://example.com/image3.jpg",
+            "average_rating": 5.0,
+            "reviews_count": 25
+        },
+        {
+            "id": "507f1f77bcf86cd799439021",
+            "name": "Test Restaurant",
+            "address": "123 Main St",
+            "cuisine_type": "Italian",
+            "neighborhood": "Downtown",
+            "image": "https://example.com/image.jpg",
+            "average_rating": 4.5,
+            "reviews_count": 10
+        }
+    ],
+    "restaurantDetail": {
+        "id": "507f1f77bcf86cd799439021",
+        "name": "Test Restaurant",
+        "address": "123 Main St",
+        "latlng": {
+            "lat": 40.7128,
+            "lng": -74.006
+        },
+        "cuisine_type": "Italian",
+        "neighborhood": "Downtown",
+        "image": "https://example.com/image.jpg",
+        "photograph": "test.jpg",
+        "operating_hours": {
+            "Monday": "9am-10pm",
+            "Tuesday": "9am-10pm",
+            "Wednesday": "9am-10pm",
+            "Thursday": "9am-10pm",
+            "Friday": "9am-11pm",
+            "Saturday": "10am-11pm",
+            "Sunday": "10am-9pm"
+        },
+        "average_rating": 4.5,
+        "reviews_count": 10
+    }
+}
