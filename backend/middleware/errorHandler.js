@@ -1,5 +1,8 @@
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  // Solo imprimir errores en desarrollo, no en tests
+  if (process.env.NODE_ENV !== "test") {
+    console.error(err.stack);
+  }
 
   let status = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
