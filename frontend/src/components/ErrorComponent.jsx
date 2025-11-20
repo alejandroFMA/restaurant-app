@@ -27,7 +27,11 @@ const ErrorComponent = () => {
             <h3 className="text-sm font-medium text-red-800">Error</h3>
             <div className="mt-1 text-sm text-red-700">
               {error.split("\n").map((line, index) => (
-                <p key={index} className={index > 0 ? "mt-1" : ""}>
+                <p
+                  key={index}
+                  className={index > 0 ? "mt-1" : ""}
+                  data-cy="error-message"
+                >
                   {line}
                 </p>
               ))}

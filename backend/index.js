@@ -56,7 +56,6 @@ app.use(helmet());
 app.use("/api/", limiter);
 app.use(express.json());
 
-// routes
 app.use("/api/restaurants", restaurantsAPIRoute);
 app.use("/api/users", usersAPIRoute);
 app.use("/api/auth", authAPIRoute);

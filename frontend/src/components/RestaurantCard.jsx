@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const RestaurantCard = ({ restaurant }) => {
   const recommended = restaurant.average_rating > 4.5;
   const popular =
-    restaurant.reviews_count > 5 && restaurant.average_rating > 4.5;
+    restaurant.reviews_count >= 5 && restaurant.average_rating >= 4.5;
 
   const sevenDaysAgo = useMemo(() => {
     const now = new Date();

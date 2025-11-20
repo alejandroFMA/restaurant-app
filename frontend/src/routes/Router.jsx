@@ -11,6 +11,7 @@ import RestaurantDetail from "../pages/RestaurantDetail";
 import UserProfile from "../pages/UserProfile";
 import CreateRestaurant from "../pages/CreateRestaurant";
 import ErrorComponent from "../components/ErrorComponent";
+import ErrorPage from "../pages/ErrorPage";
 
 const Router = () => {
   const { initialize, isAuthenticated } = useAuthStore();
@@ -53,16 +54,7 @@ const Router = () => {
           <Route path="/create-restaurant" element={<CreateRestaurant />} />
         </Route>
 
-        <Route
-          path="*"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </BrowserRouter>
   );
