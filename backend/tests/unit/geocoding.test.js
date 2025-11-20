@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 
 const { geocodeAddress: realGeocodeAddress } = await import(
-  "../../../utils/geocoding.js"
+  "../../utils/geocoding.js"
 );
 
 global.fetch = jest.fn();
