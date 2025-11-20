@@ -1,11 +1,9 @@
 import { jest } from "@jest/globals";
 
-// Importar la función real primero para probar las validaciones
 const { geocodeAddress: realGeocodeAddress } = await import(
-  "../../../utils/geocoding.js"
+  "../../utils/geocoding.js"
 );
 
-// Mock de fetch para las pruebas que necesitan simular llamadas API
 global.fetch = jest.fn();
 
 describe("Geocoding", () => {

@@ -27,6 +27,14 @@ export const createReviewValidator = [
 ];
 
 export const updateReviewValidator = [
+  body().custom((value) => {
+    const hasRating = value.rating !== undefined;
+    const hasReview = value.review !== undefined;
+    if (!hasRating && !hasReview) {
+      throw new Error("At least one field (rating or review) must be provided");
+    }
+    return true;
+  }),
   body("rating")
     .optional()
     .isInt({ min: 1, max: 5 })

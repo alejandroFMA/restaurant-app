@@ -88,13 +88,13 @@ const getAllRestaurants = async (req, res, next) => {
 const getRestaurantByName = async (req, res, next) => {
   try {
     const name = req.params.name;
-    const restaurant = await fetchRestaurantByName(name);
-    if (!restaurant) {
+    const restaurants = await fetchRestaurantByName(name);
+    if (!restaurants || restaurants.length === 0) {
       const error = new Error("Restaurant not found");
       error.statusCode = 404;
       return next(error);
     }
-    res.status(200).json(restaurant);
+    res.status(200).json(restaurants);
   } catch (error) {
     next(error);
   }

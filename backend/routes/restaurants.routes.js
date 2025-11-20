@@ -59,7 +59,7 @@ router.put(
 );
 router.delete(
   "/:id",
-  authorize(),
+  authorize("admin"),
   validateObjectIdParam("id"),
   validationHandler,
   deleteRestaurant
