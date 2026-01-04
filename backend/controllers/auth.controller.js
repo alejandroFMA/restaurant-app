@@ -2,7 +2,6 @@ import {
   createUser,
   fetchUserByEmail,
   fetchUserByUsername,
-  fetchUserById,
 } from "../repository/users.repository.js";
 import jwt from "jsonwebtoken";
 import { hashPassword, comparePassword } from "../utils/encryptPassword.js";
